@@ -1,20 +1,25 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+interface Canal {
+  id: number;
+  nombre: string;
+  codigo: string;
+}
+
 interface Purpose {
-  id: string;
-  label: string;
-  channel: string;
+  id: number;
+  nombre: string;
+  descripcion: string;
+  baseLegal: string;
+  canales: Canal[];
 }
 
-interface GrantItem {
-  purposeId: string;
-  channel: string;
-  selected: boolean;
-}
-
-interface RevokeItem {
-  purposeId: string;
+interface ConsentItem {
+  purposeId: number;
+  purposeNombre: string;
+  canalId: number;
+  canalNombre: string;
   selected: boolean;
 }
 
@@ -93,11 +98,11 @@ interface RevokeItem {
               <h2>Otorgar consentimiento</h2>
               @if (purposes().length > 0) {
                 <div class="checkbox-list">
-                  @for (item of grantItems(); track item.purposeId) {
+                  @for (item of grantItems(); track item.purposeId + '_' + item.canalId) {
                     <label class="checkbox-item">
-                      <input type="checkbox" [(ngModel)]="item.selected" [name]="'grant_' + item.purposeId" />
-                      <span>{{ item.purposeId }}</span>
-                      <span class="channel-tag">{{ item.channel }}</span>
+                      <input type="checkbox" [(ngModel)]="item.selected" [name]="'grant_' + item.purposeId + '_' + item.canalId" />
+                      <span>{{ item.purposeNombre }}</span>
+                      <span class="channel-tag">{{ item.canalNombre }}</span>
                     </label>
                   }
                 </div>
@@ -119,10 +124,11 @@ interface RevokeItem {
               <h2>Revocar consentimiento</h2>
               @if (purposes().length > 0) {
                 <div class="checkbox-list">
-                  @for (item of revokeItems(); track item.purposeId) {
+                  @for (item of revokeItems(); track item.purposeId + '_' + item.canalId) {
                     <label class="checkbox-item">
-                      <input type="checkbox" [(ngModel)]="item.selected" [name]="'revoke_' + item.purposeId" />
-                      <span>{{ item.purposeId }}</span>
+                      <input type="checkbox" [(ngModel)]="item.selected" [name]="'revoke_' + item.purposeId + '_' + item.canalId" />
+                      <span>{{ item.purposeNombre }}</span>
+                      <span class="channel-tag">{{ item.canalNombre }}</span>
                     </label>
                   }
                 </div>
@@ -305,8 +311,8 @@ export class ApiDemoComponent implements OnInit {
   revokeReason = 'Solicitud del titular (Art. 16 Ley 21.719)';
 
   purposes = signal<Purpose[]>([]);
-  grantItems = signal<GrantItem[]>([]);
-  revokeItems = signal<RevokeItem[]>([]);
+  grantItems = signal<ConsentItem[]>([]);
+  revokeItems = signal<ConsentItem[]>([]);
   responseText = signal<string>('');
   lastStatus = signal<number | null>(null);
   loading = signal(false);
@@ -336,6 +342,33 @@ export class ApiDemoComponent implements OnInit {
     };
   }
 
+  /** Aplana propósito × canal en una lista de ítems con checkbox */
+  private flattenPurposes(list: Purpose[]): ConsentItem[] {
+    return list.flatMap(p =>
+      p.canales.map(c => ({
+        purposeId: p.id,
+        purposeNombre: p.nombre,
+        canalId: c.id,
+        canalNombre: c.nombre,
+        selected: false
+      }))
+    );
+  }
+
+  /** Agrupa ítems seleccionados en el formato { idFinalidad, idCanales[] } */
+  private groupSelected(items: ConsentItem[]): Array<{ idFinalidad: number; idCanales: number[] }> {
+    const map = new Map<number, number[]>();
+    for (const item of items.filter(i => i.selected)) {
+      const existing = map.get(item.purposeId);
+      if (existing) {
+        existing.push(item.canalId);
+      } else {
+        map.set(item.purposeId, [item.canalId]);
+      }
+    }
+    return Array.from(map.entries()).map(([idFinalidad, idCanales]) => ({ idFinalidad, idCanales }));
+  }
+
   async loadPurposes(): Promise<void> {
     this.loading.set(true);
     try {
@@ -347,10 +380,11 @@ export class ApiDemoComponent implements OnInit {
       this.responseText.set(JSON.stringify(data, null, 2));
 
       if (res.ok) {
-        const list: Purpose[] = Array.isArray(data.data) ? data.data : [];
+        const list: Purpose[] = Array.isArray(data) ? data : [];
         this.purposes.set(list);
-        this.grantItems.set(list.map((p) => ({ purposeId: p.id, channel: p.channel, selected: false })));
-        this.revokeItems.set(list.map((p) => ({ purposeId: p.id, selected: false })));
+        const items = this.flattenPurposes(list);
+        this.grantItems.set(items.map(i => ({ ...i })));
+        this.revokeItems.set(items.map(i => ({ ...i })));
       }
     } catch (err) {
       this.responseText.set(`Error de red: ${String(err)}`);
@@ -363,7 +397,8 @@ export class ApiDemoComponent implements OnInit {
     if (!this.identifier) return;
     this.loading.set(true);
     try {
-      const res = await fetch(`/api/v1/public/consent/status/${encodeURIComponent(this.identifier)}`, {
+      const url = `/api/v1/public/consent/status?identifier=${encodeURIComponent(this.identifier)}`;
+      const res = await fetch(url, {
         headers: this.buildHeaders()
       });
       const data = await res.json();
@@ -377,14 +412,17 @@ export class ApiDemoComponent implements OnInit {
   }
 
   async grantConsent(): Promise<void> {
-    const selected = this.grantItems().filter((i) => i.selected);
-    if (selected.length === 0) return;
+    const grouped = this.groupSelected(this.grantItems());
+    if (grouped.length === 0) return;
     this.loading.set(true);
     try {
       const body = {
         identifier: this.identifier,
-        purposes: selected.map((i) => i.purposeId),
-        channel: selected[0]?.channel ?? 'all'
+        purposes: grouped,
+        acceptanceAction: 'DEMO_GRANT',
+        clientMetadata: {
+          pageUrl: typeof window !== 'undefined' ? window.location.href : ''
+        }
       };
       const res = await fetch('/api/v1/public/consent/grant', {
         method: 'POST',
@@ -402,14 +440,17 @@ export class ApiDemoComponent implements OnInit {
   }
 
   async revokeConsent(): Promise<void> {
-    const selected = this.revokeItems().filter((i) => i.selected);
-    if (selected.length === 0) return;
+    const grouped = this.groupSelected(this.revokeItems());
+    if (grouped.length === 0) return;
     this.loading.set(true);
     try {
       const body = {
         identifier: this.identifier,
-        purposes: selected.map((i) => i.purposeId),
-        reason: this.revokeReason
+        purposes: grouped,
+        reason: this.revokeReason,
+        clientMetadata: {
+          pageUrl: typeof window !== 'undefined' ? window.location.href : ''
+        }
       };
       const res = await fetch('/api/v1/public/consent/revoke', {
         method: 'POST',
