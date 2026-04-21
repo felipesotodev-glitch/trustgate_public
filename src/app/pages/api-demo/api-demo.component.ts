@@ -73,6 +73,22 @@ interface ConsentItem {
                   autocomplete="off"
                 />
               </div>
+              <div class="demo-actions" style="margin-top:12px">
+                <button class="btn btn-outline" type="button" (click)="loadPurposes()" [disabled]="loading() || !clientKey">
+                  Recargar catalogo
+                </button>
+              </div>
+            </div>
+
+            <div class="card apidemo-card">
+              <h2>Operacion a integrar</h2>
+              <p class="apidemo-hint">Selecciona la API que quieres probar e integrar. El snippet generado se actualiza segun esta eleccion.</p>
+              <select class="form-control" [(ngModel)]="selectedOperation" name="selectedOperation">
+                <option value="purposes">Listar finalidades</option>
+                <option value="status">Consultar estado</option>
+                <option value="grant">Otorgar consentimiento</option>
+                <option value="revoke">Revocar consentimiento</option>
+              </select>
             </div>
 
             <!-- Purposes -->
@@ -168,18 +184,33 @@ interface ConsentItem {
 
           </div>
 
-          <!-- Right: response -->
-          <div class="apidemo-response card">
-            <div class="apidemo-response__header">
-              <h2>Respuesta</h2>
-              @if (lastStatus()) {
-                <span class="status-chip" [class.status-ok]="lastStatus()! < 400" [class.status-err]="lastStatus()! >= 400">
-                  HTTP {{ lastStatus() }}
-                </span>
-              }
-              <button class="btn btn-outline apidemo-clear" (click)="clearResponse()">Limpiar</button>
+          <!-- Right: generated code + response -->
+          <div class="apidemo-results">
+            <div class="card apidemo-card apidemo-code">
+              <div class="apidemo-code__header">
+                <div>
+                  <p class="apidemo-code__eyebrow">Codigo generado</p>
+                  <h2>Snippet listo para integrar</h2>
+                </div>
+              </div>
+              <p class="apidemo-hint">
+                Este bloque usa tu configuracion actual y la operacion seleccionada para mostrar el request que deberias integrar desde tu backend o frontend controlado.
+              </p>
+              <pre class="apidemo-code__pre" aria-label="Snippet de integracion API">{{ buildIntegrationSnippet() }}</pre>
             </div>
-            <pre class="apidemo-pre" aria-label="Respuesta JSON de la API">{{ responseText() || 'La respuesta aparecerá aquí...' }}</pre>
+
+            <div class="apidemo-response card">
+              <div class="apidemo-response__header">
+                <h2>Respuesta</h2>
+                @if (lastStatus()) {
+                  <span class="status-chip" [class.status-ok]="lastStatus()! < 400" [class.status-err]="lastStatus()! >= 400">
+                    HTTP {{ lastStatus() }}
+                  </span>
+                }
+                <button class="btn btn-outline apidemo-clear" (click)="clearResponse()">Limpiar</button>
+              </div>
+              <pre class="apidemo-pre" aria-label="Respuesta JSON de la API">{{ responseText() || 'La respuesta aparecerá aquí...' }}</pre>
+            </div>
           </div>
         </div>
 
@@ -220,6 +251,12 @@ interface ConsentItem {
       gap: 16px;
     }
 
+    .apidemo-results {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
     .apidemo-card {
       display: flex;
       flex-direction: column;
@@ -235,6 +272,12 @@ interface ConsentItem {
     .apidemo-hint {
       font-size: var(--font-size-sm);
       color: var(--color-muted);
+    }
+
+    .demo-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .checkbox-list {
@@ -273,6 +316,32 @@ interface ConsentItem {
       padding: 1px 6px;
       border-radius: 999px;
       font-weight: 600;
+    }
+
+    .apidemo-code__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .apidemo-code__eyebrow {
+      font-size: var(--font-size-xs);
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .apidemo-code__pre {
+      margin: 0;
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: var(--font-size-xs);
     }
 
     .apidemo-response {
@@ -325,6 +394,7 @@ export class ApiDemoComponent implements OnInit {
   clientKey = '';
   identifier = '';
   revokeReason = 'Solicitud del titular (Art. 16 Ley 21.719)';
+  selectedOperation: 'purposes' | 'status' | 'grant' | 'revoke' = 'grant';
 
   purposes = signal<Purpose[]>([]);
   grantItems = signal<ConsentItem[]>([]);
@@ -344,6 +414,7 @@ export class ApiDemoComponent implements OnInit {
         const data = await res.json() as { demoClientKey?: string };
         if (data.demoClientKey) {
           this.clientKey = data.demoClientKey;
+          await this.loadPurposes(false);
         }
       }
     } catch {
@@ -416,7 +487,7 @@ export class ApiDemoComponent implements OnInit {
     return Array.from(map.entries()).map(([idFinalidad, idCanales]) => ({ idFinalidad, idCanales }));
   }
 
-  async loadPurposes(): Promise<void> {
+  async loadPurposes(showResponse = true): Promise<void> {
     this.loading.set(true);
     try {
       const res = await fetch('/api/v1/public/consent/purposes', {
@@ -424,7 +495,9 @@ export class ApiDemoComponent implements OnInit {
       });
       const data = await res.json();
       this.lastStatus.set(res.status);
-      this.responseText.set(JSON.stringify(data, null, 2));
+      if (showResponse) {
+        this.responseText.set(JSON.stringify(data, null, 2));
+      }
 
       if (res.ok) {
         const list: Purpose[] = Array.isArray(data) ? data : [];
@@ -525,5 +598,89 @@ export class ApiDemoComponent implements OnInit {
   clearResponse(): void {
     this.responseText.set('');
     this.lastStatus.set(null);
+  }
+
+  buildIntegrationSnippet(): string {
+    const identifier = this.identifier.trim() || 'usuario@empresa.cl';
+    const groupedGrant = this.groupSelected(this.grantItems());
+    const groupedRevoke = this.groupSelected(this.revokeItems());
+    const snippetByOperation: Record<typeof this.selectedOperation, string> = {
+      purposes: this.buildPurposesSnippet(),
+      status: this.buildStatusSnippet(identifier),
+      grant: this.buildGrantSnippet(identifier, groupedGrant),
+      revoke: this.buildRevokeSnippet(identifier, groupedRevoke)
+    };
+
+    return snippetByOperation[this.selectedOperation];
+  }
+
+  private buildPurposesSnippet(): string {
+    return `fetch('/api/v1/public/consent/purposes', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-client-key': '${this.escapeForSnippet(this.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}'
+  }
+}).then((response) => response.json())
+  .then((data) => console.log('Finalidades activas', data));`;
+  }
+
+  private buildStatusSnippet(identifier: string): string {
+    return `fetch('/api/v1/public/consent/status?identifier=${encodeURIComponent(identifier)}', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-client-key': '${this.escapeForSnippet(this.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}'
+  }
+}).then((response) => response.json())
+  .then((data) => console.log('Estado del titular', data));`;
+  }
+
+  private buildGrantSnippet(identifier: string, purposes: Array<{ idFinalidad: number; idCanales: number[] }>): string {
+    const payload = {
+      identifier,
+      purposes: purposes.length > 0 ? purposes : [{ idFinalidad: 1, idCanales: [1] }],
+      acceptanceAction: 'CHECKBOX_ACCEPTED',
+      clientMetadata: {
+        pageUrl: 'https://www.miempresa.cl/preferencias'
+      }
+    };
+
+    return `fetch('/api/v1/public/consent/grant', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-client-key': '${this.escapeForSnippet(this.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}'
+  },
+  body: JSON.stringify(${JSON.stringify(payload, null, 2)})
+}).then((response) => response.json())
+  .then((data) => console.log('Consentimiento otorgado', data));`;
+  }
+
+  private buildRevokeSnippet(identifier: string, purposes: Array<{ idFinalidad: number; idCanales: number[] }>): string {
+    const payload = {
+      identifier,
+      purposes: purposes.length > 0 ? purposes : [{ idFinalidad: 1, idCanales: [1] }],
+      reason: this.revokeReason || 'Solicitud del titular',
+      clientMetadata: {
+        pageUrl: 'https://www.miempresa.cl/preferencias'
+      }
+    };
+
+    return `fetch('/api/v1/public/consent/revoke', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-client-key': '${this.escapeForSnippet(this.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}'
+  },
+  body: JSON.stringify(${JSON.stringify(payload, null, 2)})
+}).then((response) => response.json())
+  .then((data) => console.log('Consentimiento revocado', data));`;
+  }
+
+  private escapeForSnippet(value: string): string {
+    return String(value || '')
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'");
   }
 }
