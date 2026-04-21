@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, isDevMode, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 interface Canal {
@@ -15,13 +15,15 @@ interface Purpose {
   canales: Canal[];
 }
 
-interface ConsentItem {
-  purposeId: number;
-  purposeNombre: string;
-  canalId: number;
-  canalNombre: string;
-  selected: boolean;
+interface ApiDemoLogEntry {
+  id: number;
+  timestamp: string;
+  type: 'info' | 'success' | 'error';
+  data: string;
 }
+
+const API_DEMO_DEFAULT_IDENTIFIER = 'demo@trustgate.cl';
+const API_DEMO_DEFAULT_REVOKE_REASON = 'Solicitud del titular (Art. 16 Ley 21.719)';
 
 @Component({
   selector: 'tp-api-demo',
@@ -89,97 +91,30 @@ interface ConsentItem {
                 <option value="grant">Otorgar consentimiento</option>
                 <option value="revoke">Revocar consentimiento</option>
               </select>
+              <p class="apidemo-hint">
+                Los requests de <strong>grant</strong> y <strong>revoke</strong> usan como ejemplo la primera finalidad/canal disponible del catalogo cargado.
+              </p>
             </div>
 
-            <!-- Purposes -->
-            <div class="card apidemo-card">
-              <h2>Finalidades</h2>
-              <p class="apidemo-hint">Carga las finalidades activas para el cliente.</p>
-              <button class="btn btn-primary" (click)="loadPurposes()" [disabled]="loading()">
-                {{ loading() ? 'Cargando...' : 'Cargar finalidades' }}
-              </button>
-            </div>
-
-            <!-- Status -->
-            <div class="card apidemo-card">
-              <h2>Estado del titular</h2>
-              <p class="apidemo-hint">Consulta los consentimientos del titular identificado arriba.</p>
-              <button class="btn btn-primary" (click)="queryStatus()" [disabled]="loading() || !identifier">
-                Consultar estado
-              </button>
-            </div>
-
-            <!-- Grant -->
-            <div class="card apidemo-card">
-              <h2>Otorgar consentimiento</h2>
-              @if (purposes().length > 0) {
-                <div class="checkbox-list checkbox-list--scrollable">
-                  @for (item of grantItems(); track item.purposeId + '_' + item.canalId) {
-                    <label class="checkbox-item">
-                      <input
-                        type="checkbox"
-                        [ngModel]="item.selected"
-                        (ngModelChange)="updateGrantSelection(item.purposeId, item.canalId, $event)"
-                        [name]="'grant_' + item.purposeId + '_' + item.canalId"
-                      />
-                      <span>{{ item.purposeNombre }}</span>
-                      <span class="channel-tag">{{ item.canalNombre }}</span>
-                    </label>
-                  }
-                </div>
-              } @else {
-                <p class="apidemo-hint">Carga las finalidades primero.</p>
-              }
-              <button
-                class="btn btn-primary"
-                style="margin-top:12px"
-                (click)="grantConsent()"
-                [disabled]="loading() || !identifier || !hasSelectedGrantItems()"
-              >
-                Otorgar seleccionados
-              </button>
-            </div>
-
-            <!-- Revoke -->
-            <div class="card apidemo-card">
-              <h2>Revocar consentimiento</h2>
-              @if (purposes().length > 0) {
-                <div class="checkbox-list checkbox-list--scrollable">
-                  @for (item of revokeItems(); track item.purposeId + '_' + item.canalId) {
-                    <label class="checkbox-item">
-                      <input
-                        type="checkbox"
-                        [ngModel]="item.selected"
-                        (ngModelChange)="updateRevokeSelection(item.purposeId, item.canalId, $event)"
-                        [name]="'revoke_' + item.purposeId + '_' + item.canalId"
-                      />
-                      <span>{{ item.purposeNombre }}</span>
-                      <span class="channel-tag">{{ item.canalNombre }}</span>
-                    </label>
-                  }
-                </div>
-                <div class="form-group" style="margin-top:12px">
-                  <label class="form-label" for="revokeReason">Motivo</label>
-                  <input
-                    id="revokeReason"
-                    type="text"
-                    class="form-control"
-                    [(ngModel)]="revokeReason"
-                    name="revokeReason"
-                    placeholder="Solicitud del titular"
-                  />
-                </div>
-              } @else {
-                <p class="apidemo-hint">Carga las finalidades primero.</p>
-              }
-              <button
-                class="btn btn-outline"
-                style="margin-top:12px; border-color: var(--color-error); color: var(--color-error)"
-                (click)="revokeConsent()"
-                [disabled]="loading() || !identifier || !hasSelectedRevokeItems()"
-              >
-                Revocar seleccionados
-              </button>
+            <div class="card apidemo-card apidemo-event-log" aria-label="Log de eventos de la API demo">
+              <div class="apidemo-event-log__header">
+                <h2>Log de eventos</h2>
+                <button class="btn btn-outline apidemo-clear" type="button" (click)="clearEventLog()">Limpiar</button>
+              </div>
+              <div class="apidemo-event-log__body" role="log" aria-live="polite">
+                @if (eventLog().length === 0) {
+                  <p class="apidemo-hint">Las ejecuciones, respuestas y errores de esta pantalla apareceran aqui.</p>
+                }
+                @for (entry of eventLog(); track entry.id) {
+                  <div class="apidemo-log-entry" [class]="'apidemo-log-entry--' + entry.type">
+                    <div class="apidemo-log-entry__meta">
+                      <span>{{ entry.timestamp }}</span>
+                      <span class="apidemo-log-entry__badge">{{ entry.type }}</span>
+                    </div>
+                    <pre class="apidemo-log-entry__data">{{ entry.data }}</pre>
+                  </div>
+                }
+              </div>
             </div>
 
           </div>
@@ -285,42 +220,73 @@ interface ConsentItem {
       flex-wrap: wrap;
     }
 
-    .checkbox-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .apidemo-event-log {
+      min-height: 280px;
     }
 
-    .checkbox-list--scrollable {
-      max-height: calc((10 * 42px) + (9 * 8px));
+    .apidemo-event-log__header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .apidemo-event-log__header h2 {
+      flex: 1;
+    }
+
+    .apidemo-event-log__body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 360px;
       overflow-y: auto;
       padding-right: 4px;
     }
 
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: var(--font-size-sm);
-      cursor: pointer;
-      padding: 8px 10px;
+    .apidemo-log-entry {
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      transition: background var(--transition);
-    }
-
-    .checkbox-item:hover {
+      padding: 10px 12px;
       background: var(--color-bg-alt);
     }
 
-    .channel-tag {
-      margin-left: auto;
+    .apidemo-log-entry--success {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+
+    .apidemo-log-entry--error {
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .apidemo-log-entry__meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       font-size: var(--font-size-xs);
+      color: var(--color-muted);
+      margin-bottom: 8px;
+    }
+
+    .apidemo-log-entry__badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 999px;
       background: var(--color-primary-light);
       color: var(--color-primary-dark);
-      padding: 1px 6px;
-      border-radius: 999px;
-      font-weight: 600;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .apidemo-log-entry__data {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: var(--font-size-xs);
     }
 
     .apidemo-code__header {
@@ -397,34 +363,44 @@ interface ConsentItem {
 })
 export class ApiDemoComponent implements OnInit {
   clientKey = '';
-  identifier = '';
-  revokeReason = 'Solicitud del titular (Art. 16 Ley 21.719)';
+  identifier = API_DEMO_DEFAULT_IDENTIFIER;
   selectedOperation: 'purposes' | 'status' | 'grant' | 'revoke' = 'grant';
 
   purposes = signal<Purpose[]>([]);
-  grantItems = signal<ConsentItem[]>([]);
-  revokeItems = signal<ConsentItem[]>([]);
+  eventLog = signal<ApiDemoLogEntry[]>([]);
   responseText = signal<string>('');
   lastStatus = signal<number | null>(null);
   loading = signal(false);
+
+  private logSequence = 0;
 
   ngOnInit(): void {
     this.loadPublicConfig();
   }
 
   private async loadPublicConfig(): Promise<void> {
+    if (isDevMode()) {
+      await this.loadPurposes(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/public-config');
       if (res.ok) {
-        const data = await res.json() as { demoClientKey?: string };
+        const data = await res.json() as { demoClientKey?: string; demoIdentifier?: string };
         if (data.demoClientKey) {
           this.clientKey = data.demoClientKey;
-          await this.loadPurposes(false);
         }
+        this.identifier = data.demoIdentifier?.trim() || this.identifier || API_DEMO_DEFAULT_IDENTIFIER;
+        await this.loadPurposes(false);
       }
     } catch {
       // dev mode — ignore
     }
+  }
+
+  private getEffectiveIdentifier(): string {
+    return this.identifier.trim() || API_DEMO_DEFAULT_IDENTIFIER;
   }
 
   private buildHeaders(): HeadersInit {
@@ -434,65 +410,19 @@ export class ApiDemoComponent implements OnInit {
     };
   }
 
-  private updateSelection(
-    itemsSignal: typeof this.grantItems,
-    purposeId: number,
-    canalId: number,
-    selected: boolean
-  ): void {
-    itemsSignal.update((items) =>
-      items.map((item) =>
-        item.purposeId === purposeId && item.canalId === canalId
-          ? { ...item, selected }
-          : item
-      )
-    );
-  }
+  private buildExamplePurposes(): Array<{ idFinalidad: number; idCanales: number[] }> {
+    const firstPurpose = this.purposes()[0];
+    const firstChannel = firstPurpose?.canales?.[0];
 
-  updateGrantSelection(purposeId: number, canalId: number, selected: boolean): void {
-    this.updateSelection(this.grantItems, purposeId, canalId, selected);
-  }
-
-  updateRevokeSelection(purposeId: number, canalId: number, selected: boolean): void {
-    this.updateSelection(this.revokeItems, purposeId, canalId, selected);
-  }
-
-  hasSelectedGrantItems(): boolean {
-    return this.grantItems().some((item) => item.selected);
-  }
-
-  hasSelectedRevokeItems(): boolean {
-    return this.revokeItems().some((item) => item.selected);
-  }
-
-  /** Aplana propósito × canal en una lista de ítems con checkbox */
-  private flattenPurposes(list: Purpose[]): ConsentItem[] {
-    return list.flatMap(p =>
-      p.canales.map(c => ({
-        purposeId: p.id,
-        purposeNombre: p.nombre,
-        canalId: c.id,
-        canalNombre: c.nombre,
-        selected: false
-      }))
-    );
-  }
-
-  /** Agrupa ítems seleccionados en el formato { idFinalidad, idCanales[] } */
-  private groupSelected(items: ConsentItem[]): Array<{ idFinalidad: number; idCanales: number[] }> {
-    const map = new Map<number, number[]>();
-    for (const item of items.filter(i => i.selected)) {
-      const existing = map.get(item.purposeId);
-      if (existing) {
-        existing.push(item.canalId);
-      } else {
-        map.set(item.purposeId, [item.canalId]);
-      }
+    if (firstPurpose && firstChannel) {
+      return [{ idFinalidad: firstPurpose.id, idCanales: [firstChannel.id] }];
     }
-    return Array.from(map.entries()).map(([idFinalidad, idCanales]) => ({ idFinalidad, idCanales }));
+
+    return [{ idFinalidad: 1, idCanales: [1] }];
   }
 
   async loadPurposes(showResponse = true): Promise<void> {
+    this.addLogEntry('info', 'Cargando finalidades activas para la client key configurada.');
     this.loading.set(true);
     try {
       const res = await fetch('/api/v1/public/consent/purposes', {
@@ -503,50 +433,49 @@ export class ApiDemoComponent implements OnInit {
       if (showResponse) {
         this.responseText.set(JSON.stringify(data, null, 2));
       }
+      this.addLogEntry(res.ok ? 'success' : 'error', this.formatLogPayload('GET /api/v1/public/consent/purposes', res.status, data));
 
       if (res.ok) {
         const list: Purpose[] = Array.isArray(data) ? data : [];
         this.purposes.set(list);
-        const items = this.flattenPurposes(list);
-        this.grantItems.set(items.map(i => ({ ...i })));
-        this.revokeItems.set(items.map(i => ({ ...i })));
       }
     } catch (err) {
       this.responseText.set(`Error de red: ${String(err)}`);
+      this.addLogEntry('error', `GET /api/v1/public/consent/purposes\n${String(err)}`);
     } finally {
       this.loading.set(false);
     }
   }
 
   async queryStatus(): Promise<void> {
-    if (!this.identifier) return;
+    const identifier = this.getEffectiveIdentifier();
+    this.addLogEntry('info', `Consultando estado para ${identifier}.`);
     this.loading.set(true);
     try {
-      const url = `/api/v1/public/consent/status?identifier=${encodeURIComponent(this.identifier)}`;
+      const url = `/api/v1/public/consent/status?identifier=${encodeURIComponent(identifier)}`;
       const res = await fetch(url, {
         headers: this.buildHeaders()
       });
       const data = await res.json();
       this.lastStatus.set(res.status);
       this.responseText.set(JSON.stringify(data, null, 2));
+      this.addLogEntry(res.ok ? 'success' : 'error', this.formatLogPayload(`GET ${url}`, res.status, data));
     } catch (err) {
       this.responseText.set(`Error de red: ${String(err)}`);
+      this.addLogEntry('error', `GET /api/v1/public/consent/status\n${String(err)}`);
     } finally {
       this.loading.set(false);
     }
   }
 
   async grantConsent(): Promise<void> {
-    const grouped = this.groupSelected(this.grantItems());
-    if (grouped.length === 0) {
-      this.lastStatus.set(null);
-      this.responseText.set('Selecciona al menos una finalidad/canal para otorgar consentimiento.');
-      return;
-    }
+    const grouped = this.buildExamplePurposes();
+    const identifier = this.getEffectiveIdentifier();
+    this.addLogEntry('info', `Ejecutando grant de prueba para ${identifier}.\n${JSON.stringify(grouped, null, 2)}`);
     this.loading.set(true);
     try {
       const body = {
-        identifier: this.identifier,
+        identifier,
         purposes: grouped,
         acceptanceAction: 'DEMO_GRANT',
         clientMetadata: {
@@ -561,26 +490,25 @@ export class ApiDemoComponent implements OnInit {
       const data = await res.json();
       this.lastStatus.set(res.status);
       this.responseText.set(JSON.stringify(data, null, 2));
+      this.addLogEntry(res.ok ? 'success' : 'error', this.formatLogPayload('POST /api/v1/public/consent/grant', res.status, data));
     } catch (err) {
       this.responseText.set(`Error de red: ${String(err)}`);
+      this.addLogEntry('error', `POST /api/v1/public/consent/grant\n${String(err)}`);
     } finally {
       this.loading.set(false);
     }
   }
 
   async revokeConsent(): Promise<void> {
-    const grouped = this.groupSelected(this.revokeItems());
-    if (grouped.length === 0) {
-      this.lastStatus.set(null);
-      this.responseText.set('Selecciona al menos una finalidad/canal para revocar consentimiento.');
-      return;
-    }
+    const grouped = this.buildExamplePurposes();
+    const identifier = this.getEffectiveIdentifier();
+    this.addLogEntry('info', `Ejecutando revoke de prueba para ${identifier}.\n${JSON.stringify(grouped, null, 2)}`);
     this.loading.set(true);
     try {
       const body = {
-        identifier: this.identifier,
+        identifier,
         purposes: grouped,
-        reason: this.revokeReason,
+        reason: API_DEMO_DEFAULT_REVOKE_REASON,
         clientMetadata: {
           pageUrl: typeof window !== 'undefined' ? window.location.href : ''
         }
@@ -593,8 +521,10 @@ export class ApiDemoComponent implements OnInit {
       const data = await res.json();
       this.lastStatus.set(res.status);
       this.responseText.set(JSON.stringify(data, null, 2));
+      this.addLogEntry(res.ok ? 'success' : 'error', this.formatLogPayload('POST /api/v1/public/consent/revoke', res.status, data));
     } catch (err) {
       this.responseText.set(`Error de red: ${String(err)}`);
+      this.addLogEntry('error', `POST /api/v1/public/consent/revoke\n${String(err)}`);
     } finally {
       this.loading.set(false);
     }
@@ -605,10 +535,14 @@ export class ApiDemoComponent implements OnInit {
     this.lastStatus.set(null);
   }
 
+  clearEventLog(): void {
+    this.eventLog.set([]);
+  }
+
   buildIntegrationSnippet(): string {
-    const identifier = this.identifier.trim() || 'usuario@empresa.cl';
-    const groupedGrant = this.groupSelected(this.grantItems());
-    const groupedRevoke = this.groupSelected(this.revokeItems());
+    const identifier = this.getEffectiveIdentifier();
+    const groupedGrant = this.buildExamplePurposes();
+    const groupedRevoke = this.buildExamplePurposes();
     const snippetByOperation: Record<typeof this.selectedOperation, string> = {
       purposes: this.buildPurposesSnippet(),
       status: this.buildStatusSnippet(identifier),
@@ -639,16 +573,12 @@ export class ApiDemoComponent implements OnInit {
       return true;
     }
 
-    if (this.selectedOperation === 'status') {
-      return !this.identifier.trim();
-    }
-
     if (this.selectedOperation === 'grant') {
-      return !this.identifier.trim() || !this.hasSelectedGrantItems();
+      return this.purposes().length === 0;
     }
 
     if (this.selectedOperation === 'revoke') {
-      return !this.identifier.trim() || !this.hasSelectedRevokeItems();
+      return this.purposes().length === 0;
     }
 
     return false;
@@ -701,7 +631,7 @@ export class ApiDemoComponent implements OnInit {
     const payload = {
       identifier,
       purposes: purposes.length > 0 ? purposes : [{ idFinalidad: 1, idCanales: [1] }],
-      reason: this.revokeReason || 'Solicitud del titular',
+      reason: API_DEMO_DEFAULT_REVOKE_REASON,
       clientMetadata: {
         pageUrl: 'https://www.miempresa.cl/preferencias'
       }
@@ -722,5 +652,19 @@ export class ApiDemoComponent implements OnInit {
     return String(value || '')
       .replace(/\\/g, '\\\\')
       .replace(/'/g, "\\'");
+  }
+
+  private addLogEntry(type: ApiDemoLogEntry['type'], data: string): void {
+    const entry: ApiDemoLogEntry = {
+      id: ++this.logSequence,
+      timestamp: new Date().toLocaleTimeString('es-CL'),
+      type,
+      data
+    };
+    this.eventLog.update((items) => [entry, ...items]);
+  }
+
+  private formatLogPayload(operation: string, status: number, payload: unknown): string {
+    return `${operation}\nHTTP ${status}\n${JSON.stringify(payload, null, 2)}`;
   }
 }

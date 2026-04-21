@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, isDevMode, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 interface DemoChannelOption {
@@ -20,6 +20,13 @@ interface WidgetConfig {
   mode: 'banner' | 'modal' | 'inline';
   selectedPurposeIds: number[];
   selectedChannelCodes: string[];
+}
+
+interface WidgetEventLogEntry {
+  id: number;
+  timestamp: string;
+  type: string;
+  data: string;
 }
 
 const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
@@ -193,7 +200,7 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
                 @if (eventLog().length === 0) {
                   <p class="event-log__empty">Los eventos del widget aparecerán aquí al lanzarlo.</p>
                 }
-                @for (entry of eventLog(); track entry.timestamp) {
+                @for (entry of eventLog(); track entry.id) {
                   <div class="event-log__entry" [class]="'entry-' + entry.type">
                     <span class="entry-time">{{ entry.timestamp }}</span>
                     <span class="entry-badge" [class]="'entry-badge--' + entry.type">{{ entry.type }}</span>
@@ -489,11 +496,12 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     selectedChannelCodes: []
   };
 
-  eventLog = signal<Array<{ timestamp: string; type: string; data: string }>>([]);
+  eventLog = signal<WidgetEventLogEntry[]>([]);
   availablePurposes = signal<DemoPurpose[]>([]);
   availableChannels = signal<DemoChannelOption[]>([]);
 
   private scriptElement: HTMLScriptElement | null = null;
+  private eventLogSequence = 0;
 
   ngOnInit(): void {
     this.loadDemoConfig();
@@ -504,6 +512,11 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
   }
 
   private async loadDemoConfig(): Promise<void> {
+    if (isDevMode()) {
+      await this.reloadCatalog();
+      return;
+    }
+
     try {
       const response = await fetch('/api/public-config');
       if (response.ok) {
@@ -583,6 +596,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     this.config.identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
     const purposeIds = this.config.selectedPurposeIds;
     const channelCodes = this.config.selectedChannelCodes;
+    const statusEndpoint = this.resolveStatusEndpoint();
 
     if (!this.config.clientKey.trim()) {
       this.addLogEntry('error', 'Debes informar clientKey antes de lanzar el widget.');
@@ -597,7 +611,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       identifier: this.config.identifier,
       mode: this.config.mode,
       targetId: this.config.mode === 'inline' ? 'inline-target' : undefined,
-      statusEndpoint: '/api/widget-demo/consent-status',
+      statusEndpoint,
       purposeIds: purposeIds,
       channelCodes: channelCodes,
       onGranted: (data: unknown) => {
@@ -628,6 +642,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     const identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
     const purposeIds = this.config.selectedPurposeIds;
     const channelCodes = this.config.selectedChannelCodes;
+    const statusEndpoint = this.resolveStatusEndpoint();
     const configLines = [
       `  clientKey: '${this.escapeForSnippet(this.config.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}',`,
       `  identifier: '${this.escapeForSnippet(identifier)}',`,
@@ -645,6 +660,10 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     if (channelCodes.length > 0) {
       const quotedChannelCodes = channelCodes.map((item) => `'${this.escapeForSnippet(item)}'`).join(', ');
       configLines.push(`  channelCodes: [${quotedChannelCodes}],`);
+    }
+
+    if (statusEndpoint !== '/api/v1/public/consent/status') {
+      configLines.push(`  statusEndpoint: '${this.escapeForSnippet(statusEndpoint)}',`);
     }
 
     configLines.push(`  onGranted: (data) => console.log('Consentimiento otorgado', data),`);
@@ -677,6 +696,10 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     this.eventLog.set([]);
   }
 
+  private resolveStatusEndpoint(): string {
+    return isDevMode() ? '/api/v1/public/consent/status' : '/api/widget-demo/consent-status';
+  }
+
   private removeWidgetScript(): void {
     const widgetInstance = (window as unknown as Record<string, unknown>)['TrustGateWidget'];
     if (widgetInstance && typeof (widgetInstance as { destroy?: () => void }).destroy === 'function') {
@@ -693,6 +716,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
 
   private addLogEntry(type: string, data: string): void {
     const entry = {
+      id: ++this.eventLogSequence,
       timestamp: new Date().toLocaleTimeString('es-CL'),
       type,
       data

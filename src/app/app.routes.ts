@@ -46,6 +46,14 @@ export const routes: Routes = [
     title: 'Contacto — TrustGate'
   },
   {
+    path: 'autorizacion/:token',
+    loadComponent: () =>
+      import('./pages/consent-authorization/consent-authorization.component').then(
+        (m) => m.ConsentAuthorizationComponent
+      ),
+    title: 'Autorización privada — TrustGate'
+  },
+  {
     path: '**',
     redirectTo: ''
   }

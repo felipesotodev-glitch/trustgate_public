@@ -27,8 +27,9 @@
         consents: [],
         selections: {},
         error: '',
-          info: '',
-          scrollTop: 0
+        info: '',
+        scrollTop: 0,
+        hasSkippedInitialStatusCheck: false
       };
       this.host = null;
       this.shadow = null;
@@ -97,7 +98,8 @@
         const purposesPromise = this.fetchJson('/api/v1/public/consent/purposes');
         const statusUrl = (this.config.statusEndpoint || '/api/v1/public/consent/status')
           + '?identifier=' + encodeURIComponent(this.config.identifier);
-        const statusPromise = this.config.skipInitialStatusCheck
+        const skipInitialStatusCheck = this.config.skipInitialStatusCheck && !this.state.hasSkippedInitialStatusCheck;
+        const statusPromise = skipInitialStatusCheck
           ? Promise.resolve(null)
           : this.fetchJson(
               statusUrl,
@@ -107,7 +109,8 @@
         const [purposes, status] = await Promise.all([purposesPromise, statusPromise]);
         this.state.purposes = this.filterPurposes(purposes);
         this.state.consents = status ? this.filterConsents(status.consents) : [];
-        if (this.config.skipInitialStatusCheck) {
+        if (skipInitialStatusCheck) {
+          this.state.hasSkippedInitialStatusCheck = true;
           this.state.info = 'Estado inicial omitido para la demo; puedes otorgar consentimiento y luego actualizar.';
         } else if (status && status.notFound) {
           this.state.info = 'El titular aun no registra consentimientos; puedes otorgarlos desde este widget.';
@@ -235,6 +238,10 @@
         (item) => item.purposeId === purposeId && item.channel === channelCode
       );
       return match ? match.status : 'sin_registro';
+    }
+
+    isActiveStatus(status) {
+      return status === 'vigente' || status === 'por_vencer';
     }
 
     getSelectedCount() {
@@ -399,7 +406,9 @@
           body: body
         });
 
-        this.clearSelections();
+        if (action === 'revoke') {
+          this.clearSelections();
+        }
         await this.loadData();
         this.state.info = action === 'grant'
           ? 'Consentimiento otorgado correctamente.'
@@ -535,10 +544,11 @@
         : this.state.purposes.map((purpose) => {
             const channelsMarkup = (purpose.canales || []).map((channel) => {
               const key = this.selectionKey(purpose.id, channel.id);
-              const checked = this.state.selections[key] ? 'checked' : '';
               const status = this.getConsentStatus(purpose.id, channel.codigo);
+              const checked = this.state.selections[key] ? 'checked' : '';
+              const activeClass = this.isActiveStatus(status) ? ' tg-channel-row--active' : '';
               return (
-                '<label class="tg-channel-row">'
+                '<label class="tg-channel-row' + activeClass + '">'
                 + '<span class="tg-channel-left">'
                 + '<input type="checkbox" data-toggle="true" data-purpose-id="' + purpose.id + '" data-channel-id="' + channel.id + '" ' + checked + ' />'
                 + '<span>' + this.escapeHtml(channel.nombre) + '</span>'
@@ -696,6 +706,7 @@
         + '.tg-legal { display: inline-flex; align-items: center; justify-content: center; background: #eef4ff; color: #30527b; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 600; }'
         + '.tg-channel-list { display: grid; gap: 10px; }'
         + '.tg-channel-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 14px; background: #f8fbff; border: 1px solid #e4edf9; cursor: pointer; }'
+        + '.tg-channel-row--active { background: #eefbf3; border-color: #9ae6b4; }'
         + '.tg-card--banner .tg-channel-list, .tg-card--inline .tg-channel-list { gap: 8px; }'
         + '.tg-card--banner .tg-channel-row, .tg-card--inline .tg-channel-row { padding: 10px 12px; border-radius: 12px; }'
         + '.tg-channel-left { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }'
