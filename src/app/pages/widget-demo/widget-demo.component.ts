@@ -8,6 +8,9 @@ interface DemoChannelOption {
 }
 
 interface DemoPurpose {
+  id: number;
+  nombre: string;
+  descripcion?: string;
   canales?: DemoChannelOption[];
 }
 
@@ -15,7 +18,7 @@ interface WidgetConfig {
   clientKey: string;
   identifier: string;
   mode: 'banner' | 'modal' | 'inline';
-  purposeIdsText: string;
+  selectedPurposeIds: number[];
   selectedChannelCodes: string[];
 }
 
@@ -53,6 +56,7 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
                   type="text"
                   class="form-control"
                   [(ngModel)]="config.clientKey"
+                  (blur)="reloadCatalog()"
                   name="clientKey"
                   placeholder="tgpub_xxxxxxxxxxxxxxxx"
                   autocomplete="off"
@@ -92,19 +96,34 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="purposeIdsText">
+                <label class="form-label">
                   Finalidades a mostrar
-                  <span class="form-hint">Opcional. IDs separados por coma. Ejemplo: 1,2,5</span>
+                  <span class="form-hint">Opcional. Selecciona las finalidades que quieres exponer en la integración.</span>
                 </label>
-                <input
-                  id="purposeIdsText"
-                  type="text"
-                  class="form-control"
-                  [(ngModel)]="config.purposeIdsText"
-                  name="purposeIdsText"
-                  placeholder="1,2,5"
-                  autocomplete="off"
-                />
+                @if (availablePurposes().length > 0) {
+                  <div class="purpose-selector" role="group" aria-label="Finalidades disponibles">
+                    @for (purpose of availablePurposes(); track purpose.id) {
+                      <label class="purpose-selector__item">
+                        <input
+                          type="checkbox"
+                          [ngModel]="isPurposeSelected(purpose.id)"
+                          (ngModelChange)="updatePurposeSelection(purpose.id, $event)"
+                          [name]="'purpose_' + purpose.id"
+                        />
+                        <span class="purpose-selector__content">
+                          <span class="purpose-selector__label">{{ purpose.nombre }}</span>
+                          @if (purpose.descripcion) {
+                            <span class="purpose-selector__description">{{ purpose.descripcion }}</span>
+                          }
+                        </span>
+                      </label>
+                    }
+                  </div>
+                } @else {
+                  <p class="form-hint form-hint--panel">
+                    No hay finalidades cargadas aún. El demo intentará obtenerlas desde la API con la llave de integración actual.
+                  </p>
+                }
               </div>
 
               <div class="form-group">
@@ -256,15 +275,43 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
       padding-right: 4px;
     }
 
-    .channel-selector__item {
+    .purpose-selector {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .channel-selector__item,
+    .purpose-selector__item {
+      display: flex;
+      align-items: start;
       gap: 10px;
       padding: 10px 12px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
       background: var(--color-bg-alt);
       cursor: pointer;
+    }
+
+    .purpose-selector__content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .purpose-selector__label {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .purpose-selector__description {
+      font-size: var(--font-size-xs);
+      color: var(--color-muted);
+      line-height: 1.4;
     }
 
     .channel-selector__label {
@@ -438,11 +485,12 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     clientKey: '',
     identifier: DEFAULT_DEMO_IDENTIFIER,
     mode: 'banner',
-    purposeIdsText: '',
+    selectedPurposeIds: [],
     selectedChannelCodes: []
   };
 
   eventLog = signal<Array<{ timestamp: string; type: string; data: string }>>([]);
+  availablePurposes = signal<DemoPurpose[]>([]);
   availableChannels = signal<DemoChannelOption[]>([]);
 
   private scriptElement: HTMLScriptElement | null = null;
@@ -464,15 +512,16 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
           this.config.clientKey = data.demoClientKey;
         }
         this.config.identifier = data.demoIdentifier?.trim() || this.config.identifier || DEFAULT_DEMO_IDENTIFIER;
-        await this.loadAvailableChannels();
+        await this.reloadCatalog();
       }
     } catch {
       this.addLogEntry('info', 'No se pudo cargar la config del servidor (modo desarrollo)');
     }
   }
 
-  private async loadAvailableChannels(): Promise<void> {
+  async reloadCatalog(): Promise<void> {
     if (!this.config.clientKey.trim()) {
+      this.availablePurposes.set([]);
       this.availableChannels.set([]);
       return;
     }
@@ -491,6 +540,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       }
 
       const data = await response.json() as DemoPurpose[];
+      this.availablePurposes.set(data);
       const uniqueChannels = new Map<string, DemoChannelOption>();
 
       data.forEach((purpose) => {
@@ -504,8 +554,19 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
 
       this.availableChannels.set(Array.from(uniqueChannels.values()));
     } catch {
+      this.availablePurposes.set([]);
       this.availableChannels.set([]);
     }
+  }
+
+  isPurposeSelected(purposeId: number): boolean {
+    return this.config.selectedPurposeIds.includes(purposeId);
+  }
+
+  updatePurposeSelection(purposeId: number, selected: boolean): void {
+    this.config.selectedPurposeIds = selected
+      ? Array.from(new Set([...this.config.selectedPurposeIds, purposeId]))
+      : this.config.selectedPurposeIds.filter((item) => item !== purposeId);
   }
 
   isChannelSelected(channelCode: string): boolean {
@@ -520,7 +581,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
 
   launchWidget(): void {
     this.config.identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
-    const purposeIds = this.parseNumericList(this.config.purposeIdsText);
+    const purposeIds = this.config.selectedPurposeIds;
     const channelCodes = this.config.selectedChannelCodes;
 
     if (!this.config.clientKey.trim()) {
@@ -563,16 +624,9 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     this.scriptElement = script;
   }
 
-  private parseNumericList(value: string): number[] {
-    return String(value || '')
-      .split(',')
-      .map((item) => Number(item.trim()))
-      .filter((item) => Number.isInteger(item) && item > 0);
-  }
-
   buildIntegrationSnippet(): string {
     const identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
-    const purposeIds = this.parseNumericList(this.config.purposeIdsText);
+    const purposeIds = this.config.selectedPurposeIds;
     const channelCodes = this.config.selectedChannelCodes;
     const configLines = [
       `  clientKey: '${this.escapeForSnippet(this.config.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}',`,
