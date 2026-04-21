@@ -18,6 +18,7 @@
       this.state = {
         open: this.config.mode === 'inline',
         loading: false,
+        loadingMessage: 'Cargando finalidades y estado actual...',
         busyAction: '',
         purposes: [],
         consents: [],
@@ -78,10 +79,16 @@
     }
 
     async loadData() {
+      const preserveLayout = this.state.purposes.length > 0;
       this.state.loading = true;
+      this.state.loadingMessage = 'Cargando finalidades y estado actual...';
       this.state.error = '';
       this.state.info = '';
-      this.render();
+      if (preserveLayout) {
+        this.syncSelectionUi();
+      } else {
+        this.render();
+      }
 
       try {
         const purposesPromise = this.fetchJson('/api/v1/public/consent/purposes');
@@ -194,6 +201,60 @@
       if (errorNode && !this.state.error) {
         errorNode.remove();
       }
+
+      const infoNode = this.shadow.querySelector('[data-role="widget-info"]');
+      if (infoNode && !this.state.info) {
+        infoNode.remove();
+      }
+
+      this.syncLoadingUi();
+      this.syncActionButtons();
+    }
+
+    syncLoadingUi() {
+      if (!this.shadow) {
+        return;
+      }
+
+      const loadingNode = this.shadow.querySelector('[data-role="widget-loading"]');
+      if (!loadingNode) {
+        return;
+      }
+
+      loadingNode.classList.toggle('tg-hidden', !(this.state.loading && this.state.purposes.length > 0));
+
+      const loadingMessageNode = this.shadow.querySelector('[data-role="widget-loading-message"]');
+      if (loadingMessageNode) {
+        loadingMessageNode.textContent = this.state.loadingMessage;
+      }
+    }
+
+    syncActionButtons() {
+      if (!this.shadow) {
+        return;
+      }
+
+      const busy = this.state.busyAction !== '' || this.state.loading;
+      const refreshButton = this.shadow.querySelector('[data-action="refresh"]');
+      if (refreshButton) {
+        refreshButton.disabled = busy;
+      }
+
+      const revokeButton = this.shadow.querySelector('[data-action="revoke"]');
+      if (revokeButton) {
+        revokeButton.disabled = busy;
+        revokeButton.textContent = this.state.busyAction === 'revoke'
+          ? 'Revocando...'
+          : 'Revocar seleccionados';
+      }
+
+      const grantButton = this.shadow.querySelector('[data-action="grant"]');
+      if (grantButton) {
+        grantButton.disabled = busy;
+        grantButton.textContent = this.state.busyAction === 'grant'
+          ? 'Otorgando...'
+          : 'Otorgar seleccionados';
+      }
     }
 
     getSelectedGroups() {
@@ -240,9 +301,13 @@
       }
 
       this.state.busyAction = action;
+      this.state.loading = true;
+      this.state.loadingMessage = action === 'grant'
+        ? 'Otorgando consentimiento y actualizando estado...'
+        : 'Revocando consentimiento y actualizando estado...';
       this.state.error = '';
       this.state.info = '';
-      this.render();
+      this.syncSelectionUi();
 
       try {
         const body = {
@@ -285,8 +350,9 @@
       } catch (error) {
         this.reportError(error);
       } finally {
+        this.state.loading = false;
         this.state.busyAction = '';
-        this.render();
+        this.syncSelectionUi();
       }
     }
 
@@ -370,6 +436,7 @@
       if (refreshButton) {
         refreshButton.addEventListener('click', async () => {
           try {
+            this.state.loadingMessage = 'Actualizando estado del consentimiento...';
             await this.loadData();
             this.render();
           } catch (error) {
@@ -394,10 +461,11 @@
       }
 
       const hiddenClass = this.state.open ? '' : 'tg-hidden';
-      const busy = this.state.busyAction !== '';
+      const busy = this.state.busyAction !== '' || this.state.loading;
       const selectedCount = this.getSelectedCount();
+      const showInitialLoading = this.state.loading && this.state.purposes.length === 0;
 
-      const purposesMarkup = this.state.purposes.length === 0 && !this.state.loading
+      const purposesMarkup = this.state.purposes.length === 0 && !showInitialLoading
         ? '<div class="tg-empty">No hay finalidades activas disponibles para este cliente.</div>'
         : this.state.purposes.map((purpose) => {
             const channelsMarkup = (purpose.canales || []).map((channel) => {
@@ -461,13 +529,19 @@
         + '</header>'
         + '<div class="tg-body" data-scroll-region="true">'
         + (this.state.error ? '<div class="tg-alert tg-alert--error" data-role="widget-error">' + this.escapeHtml(this.state.error) + '</div>' : '')
-        + (this.state.info ? '<div class="tg-alert tg-alert--info">' + this.escapeHtml(this.state.info) + '</div>' : '')
-        + (this.state.loading ? '<div class="tg-loading">Cargando finalidades y estado actual...</div>' : purposesMarkup)
+        + (this.state.info ? '<div class="tg-alert tg-alert--info" data-role="widget-info">' + this.escapeHtml(this.state.info) + '</div>' : '')
+        + (showInitialLoading ? '<div class="tg-loading">' + this.escapeHtml(this.state.loadingMessage) + '</div>' : purposesMarkup)
+        + '<div class="tg-loading-overlay ' + (this.state.loading && this.state.purposes.length > 0 ? '' : 'tg-hidden') + '" data-role="widget-loading">'
+        + '<div class="tg-loading-overlay__card">'
+        + '<span class="tg-spinner" aria-hidden="true"></span>'
+        + '<span data-role="widget-loading-message">' + this.escapeHtml(this.state.loadingMessage) + '</span>'
+        + '</div>'
+        + '</div>'
         + '</div>'
         + '<footer class="tg-footer-shell">'
         + '<div class="tg-actions">'
         + '<button class="tg-btn tg-btn--ghost" type="button" data-action="refresh" ' + (busy ? 'disabled' : '') + '>Actualizar</button>'
-        + '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>Revocar seleccionados</button>'
+        + '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'revoke' ? 'Revocando...' : 'Revocar seleccionados') + '</button>'
         + '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>'
         + '</div>'
         + '</footer>'
@@ -522,7 +596,7 @@
         + '.tg-card--banner { width: min(480px, calc(100vw - 48px)); max-height: min(72vh, 680px); pointer-events: auto; }'
         + '.tg-card--inline { width: min(920px, 100%); }'
         + '.tg-header-shell { flex: 0 0 auto; background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(245,249,255,0.98) 100%); border-bottom: 1px solid rgba(214,228,248,0.9); }'
-        + '.tg-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding-top: 16px; }'
+        + '.tg-body { position: relative; flex: 1 1 auto; min-height: 0; overflow: auto; padding-top: 16px; }'
         + '.tg-footer-shell { flex: 0 0 auto; background: linear-gradient(180deg, rgba(245,249,255,0.92) 0%, #f5f9ff 100%); border-top: 1px solid rgba(214,228,248,0.9); }'
         + '.tg-topbar { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 24px 24px 16px; background: radial-gradient(circle at top right, #dceaff 0%, rgba(220,234,255,0) 42%); }'
         + '.tg-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #dceaff; color: #0b5fff; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }'
@@ -540,7 +614,12 @@
         + '.tg-alert--info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }'
         + '.tg-card--banner .tg-alert { margin: 0 18px 12px; font-size: 13px; }'
         + '.tg-loading, .tg-empty { margin: 0 24px 24px; padding: 18px; border-radius: 16px; background: #eff6ff; color: #1e3a5f; font-size: 14px; }'
+        + '.tg-loading-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(245,249,255,0.72); backdrop-filter: blur(2px); }'
+        + '.tg-loading-overlay__card { display: inline-flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 16px; background: rgba(255,255,255,0.95); border: 1px solid #d6e4f8; box-shadow: 0 16px 40px rgba(16, 36, 62, 0.12); color: #1e3a5f; font-size: 14px; font-weight: 600; }'
+        + '.tg-spinner { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #bfdbfe; border-top-color: #0b5fff; animation: tg-spin 0.8s linear infinite; }'
         + '.tg-card--banner .tg-loading, .tg-card--banner .tg-empty { margin: 0 18px 16px; padding: 14px; font-size: 13px; }'
+        + '.tg-card--banner .tg-loading-overlay { padding: 18px; }'
+        + '.tg-card--banner .tg-loading-overlay__card { width: 100%; justify-content: center; font-size: 13px; }'
         + '.tg-purpose-card { margin: 0 24px 18px; padding: 18px; border: 1px solid #d6e4f8; background: rgba(255,255,255,0.88); border-radius: 18px; }'
         + '.tg-card--banner .tg-purpose-card { margin: 0 18px 12px; padding: 14px; border-radius: 16px; }'
         + '.tg-purpose-header { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }'
@@ -572,6 +651,7 @@
         + '.tg-btn--primary { background: #0b5fff; color: #ffffff; }'
         + '.tg-btn--danger { background: #fff1f2; color: #be123c; }'
         + '.tg-btn--ghost { background: #eaf1fb; color: #24456a; }'
+        + '@keyframes tg-spin { to { transform: rotate(360deg); } }'
         + '@media (max-width: 720px) {'
         + '.tg-overlay { padding: 12px; }'
         + '.tg-banner { left: 12px; right: 12px; bottom: 12px; }'
