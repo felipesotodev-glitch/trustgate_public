@@ -22,7 +22,8 @@
         consents: [],
         selections: {},
         error: '',
-        info: ''
+          info: '',
+          scrollTop: 0
       };
       this.host = null;
       this.shadow = null;
@@ -303,6 +304,13 @@
       if (!this.shadow) {
         return;
       }
+      const scrollRegion = this.shadow.querySelector('[data-scroll-region="true"]');
+      if (scrollRegion) {
+        scrollRegion.scrollTop = this.state.scrollTop || 0;
+        scrollRegion.addEventListener('scroll', () => {
+          this.state.scrollTop = scrollRegion.scrollTop;
+        });
+      }
 
       this.shadow.querySelectorAll('[data-toggle]').forEach((element) => {
         element.addEventListener('change', (event) => {
@@ -410,33 +418,38 @@
           ? 'tg-card tg-card--banner'
           : 'tg-card tg-card--inline';
 
-      this.shadow.innerHTML = ''
-        + '<style>' + this.styles() + '</style>'
-        + '<div class="' + containerClass + '" data-overlay="' + (this.config.mode === 'modal' ? 'true' : 'false') + '">'
-        + '<section class="' + cardClass + '" role="dialog" aria-label="Centro de consentimiento TrustGate">'
-        + '<header class="tg-topbar">'
-        + '<div>'
-        + '<span class="tg-badge">TrustGate</span>'
-        + '<h2>Centro de consentimiento</h2>'
-        + '<p>Gestiona tus permisos por finalidad y canal.</p>'
-        + '</div>'
-        + (this.config.mode === 'inline' ? '' : '<button class="tg-close" type="button" data-action="close" aria-label="Cerrar">Cerrar</button>')
-        + '</header>'
-        + '<div class="tg-meta">'
-        + '<span><strong>Identificador:</strong> ' + this.escapeHtml(this.config.identifier) + '</span>'
-        + '<span><strong>Seleccionados:</strong> ' + selectedCount + '</span>'
-        + '</div>'
-        + (this.state.error ? '<div class="tg-alert tg-alert--error">' + this.escapeHtml(this.state.error) + '</div>' : '')
-        + (this.state.info ? '<div class="tg-alert tg-alert--info">' + this.escapeHtml(this.state.info) + '</div>' : '')
-        + (this.state.loading ? '<div class="tg-loading">Cargando finalidades y estado actual...</div>' : purposesMarkup)
-        + '<footer class="tg-actions">'
-        + '<button class="tg-btn tg-btn--ghost" type="button" data-action="refresh" ' + (busy ? 'disabled' : '') + '>Actualizar</button>'
-        + '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>Revocar seleccionados</button>'
-        + '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>'
-        + '</footer>'
-        + '</section>'
-        + '</div>';
-
+          + '<header class="tg-header-shell">'
+          + '<div class="tg-topbar">'
+          + '<div>'
+          + '<span class="tg-badge">TrustGate</span>'
+          + '<h2>Centro de consentimiento</h2>'
+          + '<p>Gestiona tus permisos por finalidad y canal.</p>'
+          + '</div>'
+          + (this.config.mode === 'inline' ? '' : '<button class="tg-close" type="button" data-action="close" aria-label="Cerrar">Cerrar</button>')
+          + '</div>'
+          + '<div class="tg-meta">'
+          + '<span><strong>Identificador:</strong> ' + this.escapeHtml(this.config.identifier) + '</span>'
+          + '<span><strong>Seleccionados:</strong> ' + selectedCount + '</span>'
+          + '</div>'
+          + '</header>'
+          + '<div class="tg-body" data-scroll-region="true">'
+          + (this.state.error ? '<div class="tg-alert tg-alert--error">' + this.escapeHtml(this.state.error) + '</div>' : '')
+          + (this.state.info ? '<div class="tg-alert tg-alert--info">' + this.escapeHtml(this.state.info) + '</div>' : '')
+          + (this.state.loading ? '<div class="tg-loading">Cargando finalidades y estado actual...</div>' : purposesMarkup)
+          + '</div>'
+          + '<footer class="tg-footer-shell">'
+          + '<div class="tg-actions">'
+          + '<button class="tg-btn tg-btn--ghost" type="button" data-action="refresh" ' + (busy ? 'disabled' : '') + '>Actualizar</button>'
+          + '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>Revocar seleccionados</button>'
+          + '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>'
+          + '</div>'
+          + '</footer>'
+          + '</section>'
+          + '</div>';
+                  + '<span><strong>Seleccionados:</strong> ' + selectedCount + '</span>'
+                  + '</div>'
+                  + '</header>'
+                  + '<div class="tg-body" data-scroll-region="true">'
       this.bindEvents();
     }
 
@@ -480,10 +493,13 @@
         + '.tg-overlay { position: fixed; inset: 0; background: rgba(7, 18, 37, 0.48); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24px; }'
         + '.tg-banner { position: fixed; left: 24px; right: 24px; bottom: 24px; z-index: 9999; display: flex; justify-content: flex-end; align-items: flex-end; pointer-events: none; }'
         + '.tg-shell--inline { display: block; }'
-        + '.tg-card { background: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%); border: 1px solid #d6e4f8; border-radius: 24px; box-shadow: 0 24px 60px rgba(16, 36, 62, 0.18); overflow: hidden; }'
-        + '.tg-card--modal { width: min(760px, 100%); max-height: min(88vh, 920px); overflow: auto; }'
-        + '.tg-card--banner { width: min(480px, calc(100vw - 48px)); max-height: min(72vh, 680px); overflow: auto; pointer-events: auto; }'
+        + '.tg-card { background: linear-gradient(180deg, #ffffff 0%, #f5f9ff 100%); border: 1px solid #d6e4f8; border-radius: 24px; box-shadow: 0 24px 60px rgba(16, 36, 62, 0.18); overflow: hidden; display: flex; flex-direction: column; }'
+        + '.tg-card--modal { width: min(760px, 100%); max-height: min(88vh, 920px); }'
+        + '.tg-card--banner { width: min(480px, calc(100vw - 48px)); max-height: min(72vh, 680px); pointer-events: auto; }'
         + '.tg-card--inline { width: min(920px, 100%); }'
+        + '.tg-header-shell { flex: 0 0 auto; background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(245,249,255,0.98) 100%); border-bottom: 1px solid rgba(214,228,248,0.9); }'
+        + '.tg-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding-top: 16px; }'
+        + '.tg-footer-shell { flex: 0 0 auto; background: linear-gradient(180deg, rgba(245,249,255,0.92) 0%, #f5f9ff 100%); border-top: 1px solid rgba(214,228,248,0.9); }'
         + '.tg-topbar { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 24px 24px 16px; background: radial-gradient(circle at top right, #dceaff 0%, rgba(220,234,255,0) 42%); }'
         + '.tg-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #dceaff; color: #0b5fff; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }'
         + '.tg-topbar h2 { margin: 0; font-size: 28px; line-height: 1.15; }'
@@ -524,8 +540,8 @@
         + '.tg-status--sin_registro { background: #eef2ff; color: #4338ca; }'
         + '.tg-status--por_vencer { background: #fef3c7; color: #92400e; }'
         + '.tg-status--expirado, .tg-status--suspendido { background: #e5e7eb; color: #374151; }'
-        + '.tg-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 0 24px 24px; }'
-        + '.tg-card--banner .tg-actions { position: sticky; bottom: 0; padding: 14px 18px 18px; background: linear-gradient(180deg, rgba(245,249,255,0) 0%, #f5f9ff 28%, #f5f9ff 100%); }'
+        + '.tg-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 16px 24px 24px; }'
+        + '.tg-card--banner .tg-actions { padding: 14px 18px 18px; background: linear-gradient(180deg, rgba(245,249,255,0) 0%, #f5f9ff 28%, #f5f9ff 100%); }'
         + '.tg-btn { border: 0; border-radius: 14px; padding: 12px 16px; font-size: 14px; font-weight: 700; cursor: pointer; }'
         + '.tg-card--banner .tg-btn { padding: 10px 14px; font-size: 13px; }'
         + '.tg-btn:disabled { opacity: 0.6; cursor: wait; }'
@@ -536,6 +552,7 @@
         + '.tg-overlay { padding: 12px; }'
         + '.tg-banner { left: 12px; right: 12px; bottom: 12px; }'
         + '.tg-card--banner { width: min(100%, calc(100vw - 24px)); max-height: min(78vh, 720px); }'
+        + '.tg-card--modal { max-height: min(92vh, 920px); }'
         + '.tg-topbar, .tg-meta, .tg-actions { padding-left: 16px; padding-right: 16px; }'
         + '.tg-purpose-card, .tg-alert, .tg-loading, .tg-empty { margin-left: 16px; margin-right: 16px; }'
         + '.tg-purpose-header, .tg-channel-row { flex-direction: column; align-items: stretch; }'
