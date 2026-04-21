@@ -1,12 +1,22 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+interface DemoChannelOption {
+  id: number;
+  nombre: string;
+  codigo: string;
+}
+
+interface DemoPurpose {
+  canales?: DemoChannelOption[];
+}
+
 interface WidgetConfig {
   clientKey: string;
   identifier: string;
   mode: 'banner' | 'modal' | 'inline';
   purposeIdsText: string;
-  channelCodesText: string;
+  selectedChannelCodes: string[];
 }
 
 const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
@@ -98,19 +108,30 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
               </div>
 
               <div class="form-group">
-                <label class="form-label" for="channelCodesText">
+                <label class="form-label">
                   Canales a mostrar
-                  <span class="form-hint">Opcional. Códigos separados por coma. Ejemplo: email,sms,whatsapp</span>
+                  <span class="form-hint">Opcional. Selecciona los canales que quieres exponer en la integración.</span>
                 </label>
-                <input
-                  id="channelCodesText"
-                  type="text"
-                  class="form-control"
-                  [(ngModel)]="config.channelCodesText"
-                  name="channelCodesText"
-                  placeholder="email,sms"
-                  autocomplete="off"
-                />
+                @if (availableChannels().length > 0) {
+                  <div class="channel-selector" role="group" aria-label="Canales disponibles">
+                    @for (channel of availableChannels(); track channel.codigo) {
+                      <label class="channel-selector__item">
+                        <input
+                          type="checkbox"
+                          [ngModel]="isChannelSelected(channel.codigo)"
+                          (ngModelChange)="updateChannelSelection(channel.codigo, $event)"
+                          [name]="'channel_' + channel.codigo"
+                        />
+                        <span class="channel-selector__label">{{ channel.nombre }}</span>
+                        <span class="channel-selector__code">{{ channel.codigo }}</span>
+                      </label>
+                    }
+                  </div>
+                } @else {
+                  <p class="form-hint form-hint--panel">
+                    No hay canales cargados aún. El demo intentará obtenerlos desde la API con la llave de integración actual.
+                  </p>
+                }
               </div>
 
               <div class="demo-actions">
@@ -224,6 +245,49 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
       gap: 8px;
       flex-wrap: wrap;
       margin-top: 8px;
+    }
+
+    .channel-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .channel-selector__item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-alt);
+      cursor: pointer;
+    }
+
+    .channel-selector__label {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .channel-selector__code {
+      margin-left: auto;
+      font-size: var(--font-size-xs);
+      color: var(--color-muted);
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--color-primary-light);
+    }
+
+    .form-hint--panel {
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      background: var(--color-bg-alt);
+      border: 1px dashed var(--color-border);
+      margin-top: 0;
     }
 
     .demo-preview {
@@ -375,10 +439,11 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     identifier: DEFAULT_DEMO_IDENTIFIER,
     mode: 'banner',
     purposeIdsText: '',
-    channelCodesText: ''
+    selectedChannelCodes: []
   };
 
   eventLog = signal<Array<{ timestamp: string; type: string; data: string }>>([]);
+  availableChannels = signal<DemoChannelOption[]>([]);
 
   private scriptElement: HTMLScriptElement | null = null;
 
@@ -399,16 +464,64 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
           this.config.clientKey = data.demoClientKey;
         }
         this.config.identifier = data.demoIdentifier?.trim() || this.config.identifier || DEFAULT_DEMO_IDENTIFIER;
+        await this.loadAvailableChannels();
       }
     } catch {
       this.addLogEntry('info', 'No se pudo cargar la config del servidor (modo desarrollo)');
     }
   }
 
+  private async loadAvailableChannels(): Promise<void> {
+    if (!this.config.clientKey.trim()) {
+      this.availableChannels.set([]);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/v1/public/consent/purposes', {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-client-key': this.config.clientKey.trim()
+        }
+      });
+
+      if (!response.ok) {
+        this.availableChannels.set([]);
+        return;
+      }
+
+      const data = await response.json() as DemoPurpose[];
+      const uniqueChannels = new Map<string, DemoChannelOption>();
+
+      data.forEach((purpose) => {
+        (purpose.canales || []).forEach((channel) => {
+          if (!channel?.codigo || uniqueChannels.has(channel.codigo)) {
+            return;
+          }
+          uniqueChannels.set(channel.codigo, channel);
+        });
+      });
+
+      this.availableChannels.set(Array.from(uniqueChannels.values()));
+    } catch {
+      this.availableChannels.set([]);
+    }
+  }
+
+  isChannelSelected(channelCode: string): boolean {
+    return this.config.selectedChannelCodes.includes(channelCode);
+  }
+
+  updateChannelSelection(channelCode: string, selected: boolean): void {
+    this.config.selectedChannelCodes = selected
+      ? Array.from(new Set([...this.config.selectedChannelCodes, channelCode]))
+      : this.config.selectedChannelCodes.filter((item) => item !== channelCode);
+  }
+
   launchWidget(): void {
     this.config.identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
     const purposeIds = this.parseNumericList(this.config.purposeIdsText);
-    const channelCodes = this.parseStringList(this.config.channelCodesText);
+    const channelCodes = this.config.selectedChannelCodes;
 
     if (!this.config.clientKey.trim()) {
       this.addLogEntry('error', 'Debes informar clientKey antes de lanzar el widget.');
@@ -457,17 +570,10 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       .filter((item) => Number.isInteger(item) && item > 0);
   }
 
-  private parseStringList(value: string): string[] {
-    return String(value || '')
-      .split(',')
-      .map((item) => item.trim().toLowerCase())
-      .filter((item) => item.length > 0);
-  }
-
   buildIntegrationSnippet(): string {
     const identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
     const purposeIds = this.parseNumericList(this.config.purposeIdsText);
-    const channelCodes = this.parseStringList(this.config.channelCodesText);
+    const channelCodes = this.config.selectedChannelCodes;
     const configLines = [
       `  clientKey: '${this.escapeForSnippet(this.config.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}',`,
       `  identifier: '${this.escapeForSnippet(identifier)}',`,
