@@ -165,6 +165,10 @@
       return match ? match.status : 'sin_registro';
     }
 
+    getSelectedCount() {
+      return this.getSelectedGroups().reduce((total, item) => total + item.idCanales.length, 0);
+    }
+
     selectionKey(purposeId, channelId) {
       return String(purposeId) + ':' + String(channelId);
     }
@@ -172,7 +176,24 @@
     toggleSelection(purposeId, channelId) {
       const key = this.selectionKey(purposeId, channelId);
       this.state.selections[key] = !this.state.selections[key];
-      this.render();
+      this.state.error = '';
+      this.syncSelectionUi();
+    }
+
+    syncSelectionUi() {
+      if (!this.shadow) {
+        return;
+      }
+
+      const selectedCountNode = this.shadow.querySelector('[data-selected-count="true"]');
+      if (selectedCountNode) {
+        selectedCountNode.textContent = String(this.getSelectedCount());
+      }
+
+      const errorNode = this.shadow.querySelector('[data-role="widget-error"]');
+      if (errorNode && !this.state.error) {
+        errorNode.remove();
+      }
     }
 
     getSelectedGroups() {
@@ -374,8 +395,7 @@
 
       const hiddenClass = this.state.open ? '' : 'tg-hidden';
       const busy = this.state.busyAction !== '';
-      const selectedGroups = this.getSelectedGroups();
-      const selectedCount = selectedGroups.reduce((total, item) => total + item.idCanales.length, 0);
+      const selectedCount = this.getSelectedCount();
 
       const purposesMarkup = this.state.purposes.length === 0 && !this.state.loading
         ? '<div class="tg-empty">No hay finalidades activas disponibles para este cliente.</div>'
@@ -436,11 +456,11 @@
         + '</div>'
         + '<div class="tg-meta">'
         + '<span><strong>Identificador:</strong> ' + this.escapeHtml(this.config.identifier) + '</span>'
-        + '<span><strong>Seleccionados:</strong> ' + selectedCount + '</span>'
+        + '<span><strong>Seleccionados:</strong> <span data-selected-count="true">' + selectedCount + '</span></span>'
         + '</div>'
         + '</header>'
         + '<div class="tg-body" data-scroll-region="true">'
-        + (this.state.error ? '<div class="tg-alert tg-alert--error">' + this.escapeHtml(this.state.error) + '</div>' : '')
+        + (this.state.error ? '<div class="tg-alert tg-alert--error" data-role="widget-error">' + this.escapeHtml(this.state.error) + '</div>' : '')
         + (this.state.info ? '<div class="tg-alert tg-alert--info">' + this.escapeHtml(this.state.info) + '</div>' : '')
         + (this.state.loading ? '<div class="tg-loading">Cargando finalidades y estado actual...</div>' : purposesMarkup)
         + '</div>'
