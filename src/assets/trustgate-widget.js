@@ -9,6 +9,7 @@
         identifier: typeof widgetConfig.identifier === 'string' ? widgetConfig.identifier.trim() : '',
         mode: allowedModes.has(widgetConfig.mode) ? widgetConfig.mode : 'banner',
         targetId: widgetConfig.targetId,
+        skipInitialStatusCheck: widgetConfig.skipInitialStatusCheck === true,
         onGranted: widgetConfig.onGranted,
         onRevoked: widgetConfig.onRevoked,
         onError: widgetConfig.onError
@@ -82,15 +83,19 @@
 
       try {
         const purposesPromise = this.fetchJson('/api/v1/public/consent/purposes');
-        const statusPromise = this.fetchJson(
-          '/api/v1/public/consent/status?identifier=' + encodeURIComponent(this.config.identifier),
-          { allowNotFound: true }
-        );
+        const statusPromise = this.config.skipInitialStatusCheck
+          ? Promise.resolve(null)
+          : this.fetchJson(
+              '/api/v1/public/consent/status?identifier=' + encodeURIComponent(this.config.identifier),
+              { allowNotFound: true }
+            );
 
         const [purposes, status] = await Promise.all([purposesPromise, statusPromise]);
         this.state.purposes = Array.isArray(purposes) ? purposes : [];
         this.state.consents = status && Array.isArray(status.consents) ? status.consents : [];
-        if (status && status.notFound) {
+        if (this.config.skipInitialStatusCheck) {
+          this.state.info = 'Estado inicial omitido para la demo; puedes otorgar consentimiento y luego actualizar.';
+        } else if (status && status.notFound) {
           this.state.info = 'El titular aun no registra consentimientos; puedes otorgarlos desde este widget.';
         }
       } finally {
