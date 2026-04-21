@@ -197,6 +197,11 @@ interface ConsentItem {
                 Este bloque usa tu configuracion actual y la operacion seleccionada para mostrar el request que deberias integrar desde tu backend o frontend controlado.
               </p>
               <pre class="apidemo-code__pre" aria-label="Snippet de integracion API">{{ buildIntegrationSnippet() }}</pre>
+              <div class="demo-actions" style="margin-top:12px">
+                <button class="btn btn-primary" type="button" (click)="executeSelectedOperation()" [disabled]="isExecuteDisabled() || loading()">
+                  {{ loading() ? 'Ejecutando...' : 'Ejecutar solicitud' }}
+                </button>
+              </div>
             </div>
 
             <div class="apidemo-response card">
@@ -612,6 +617,41 @@ export class ApiDemoComponent implements OnInit {
     };
 
     return snippetByOperation[this.selectedOperation];
+  }
+
+  executeSelectedOperation(): Promise<void> {
+    switch (this.selectedOperation) {
+      case 'purposes':
+        return this.loadPurposes();
+      case 'status':
+        return this.queryStatus();
+      case 'grant':
+        return this.grantConsent();
+      case 'revoke':
+        return this.revokeConsent();
+      default:
+        return Promise.resolve();
+    }
+  }
+
+  isExecuteDisabled(): boolean {
+    if (!this.clientKey.trim()) {
+      return true;
+    }
+
+    if (this.selectedOperation === 'status') {
+      return !this.identifier.trim();
+    }
+
+    if (this.selectedOperation === 'grant') {
+      return !this.identifier.trim() || !this.hasSelectedGrantItems();
+    }
+
+    if (this.selectedOperation === 'revoke') {
+      return !this.identifier.trim() || !this.hasSelectedRevokeItems();
+    }
+
+    return false;
   }
 
   private buildPurposesSnippet(): string {
