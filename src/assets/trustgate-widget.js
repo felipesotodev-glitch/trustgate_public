@@ -418,38 +418,39 @@
           ? 'tg-card tg-card--banner'
           : 'tg-card tg-card--inline';
 
-          + '<header class="tg-header-shell">'
-          + '<div class="tg-topbar">'
-          + '<div>'
-          + '<span class="tg-badge">TrustGate</span>'
-          + '<h2>Centro de consentimiento</h2>'
-          + '<p>Gestiona tus permisos por finalidad y canal.</p>'
-          + '</div>'
-          + (this.config.mode === 'inline' ? '' : '<button class="tg-close" type="button" data-action="close" aria-label="Cerrar">Cerrar</button>')
-          + '</div>'
-          + '<div class="tg-meta">'
-          + '<span><strong>Identificador:</strong> ' + this.escapeHtml(this.config.identifier) + '</span>'
-          + '<span><strong>Seleccionados:</strong> ' + selectedCount + '</span>'
-          + '</div>'
-          + '</header>'
-          + '<div class="tg-body" data-scroll-region="true">'
-          + (this.state.error ? '<div class="tg-alert tg-alert--error">' + this.escapeHtml(this.state.error) + '</div>' : '')
-          + (this.state.info ? '<div class="tg-alert tg-alert--info">' + this.escapeHtml(this.state.info) + '</div>' : '')
-          + (this.state.loading ? '<div class="tg-loading">Cargando finalidades y estado actual...</div>' : purposesMarkup)
-          + '</div>'
-          + '<footer class="tg-footer-shell">'
-          + '<div class="tg-actions">'
-          + '<button class="tg-btn tg-btn--ghost" type="button" data-action="refresh" ' + (busy ? 'disabled' : '') + '>Actualizar</button>'
-          + '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>Revocar seleccionados</button>'
-          + '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>'
-          + '</div>'
-          + '</footer>'
-          + '</section>'
-          + '</div>';
-                  + '<span><strong>Seleccionados:</strong> ' + selectedCount + '</span>'
-                  + '</div>'
-                  + '</header>'
-                  + '<div class="tg-body" data-scroll-region="true">'
+      this.shadow.innerHTML = ''
+        + '<style>' + this.styles() + '</style>'
+        + '<div class="' + containerClass + '" data-overlay="' + (this.config.mode === 'modal' ? 'true' : 'false') + '">'
+        + '<section class="' + cardClass + '" role="dialog" aria-label="Centro de consentimiento TrustGate">'
+        + '<header class="tg-header-shell">'
+        + '<div class="tg-topbar">'
+        + '<div>'
+        + '<span class="tg-badge">TrustGate</span>'
+        + '<h2>Centro de consentimiento</h2>'
+        + '<p>Gestiona tus permisos por finalidad y canal.</p>'
+        + '</div>'
+        + (this.config.mode === 'inline' ? '' : '<button class="tg-close" type="button" data-action="close" aria-label="Cerrar">Cerrar</button>')
+        + '</div>'
+        + '<div class="tg-meta">'
+        + '<span><strong>Identificador:</strong> ' + this.escapeHtml(this.config.identifier) + '</span>'
+        + '<span><strong>Seleccionados:</strong> ' + selectedCount + '</span>'
+        + '</div>'
+        + '</header>'
+        + '<div class="tg-body" data-scroll-region="true">'
+        + (this.state.error ? '<div class="tg-alert tg-alert--error">' + this.escapeHtml(this.state.error) + '</div>' : '')
+        + (this.state.info ? '<div class="tg-alert tg-alert--info">' + this.escapeHtml(this.state.info) + '</div>' : '')
+        + (this.state.loading ? '<div class="tg-loading">Cargando finalidades y estado actual...</div>' : purposesMarkup)
+        + '</div>'
+        + '<footer class="tg-footer-shell">'
+        + '<div class="tg-actions">'
+        + '<button class="tg-btn tg-btn--ghost" type="button" data-action="refresh" ' + (busy ? 'disabled' : '') + '>Actualizar</button>'
+        + '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>Revocar seleccionados</button>'
+        + '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>'
+        + '</div>'
+        + '</footer>'
+        + '</section>'
+        + '</div>';
+
       this.bindEvents();
     }
 
