@@ -100,7 +100,7 @@ import { RouterLink } from '@angular/router';
           <h3>GET /consent/purposes — Respuesta</h3>
           <pre>{{ purposesResponse }}</pre>
 
-          <h3>GET /consent/status/:identifier — Respuesta</h3>
+          <h3>GET /consent/status?identifier=... — Respuesta</h3>
           <pre>{{ statusResponse }}</pre>
 
           <h3>POST /consent/grant — Body</h3>
@@ -119,6 +119,12 @@ import { RouterLink } from '@angular/router';
             Embebe el widget de consentimiento en cualquier página HTML con tres líneas de código.
           </p>
           <pre>{{ widgetSnippet }}</pre>
+          <p>
+            El widget consulta automáticamente <code>/consent/purposes</code> y <code>/consent/status</code> al inicializarse. Para lanzar el widget, <code>identifier</code> y <code>clientKey</code> son obligatorios.
+          </p>
+          <p>
+            La instancia expone <code>window.TrustGateWidget.open()</code>, <code>close()</code>, <code>destroy()</code> y <code>reload()</code> para control programático.
+          </p>
           <p>Opciones de configuración disponibles en <code>window.TrustGateConfig</code>:</p>
           <div class="table-wrapper">
             <table>
@@ -306,7 +312,7 @@ export class DocsComponent {
     },
     {
       method: 'GET',
-      path: '/api/v1/public/consent/status/{identifier}',
+      path: '/api/v1/public/consent/status?identifier={identifier}',
       description: 'Consulta el estado de consentimientos del titular.'
     },
     {
@@ -321,35 +327,84 @@ export class DocsComponent {
     }
   ];
 
-  purposesResponse = JSON.stringify({
-    data: [
-      { id: 'mkt_email', label: 'Marketing por email', channel: 'email', required: false },
-      { id: 'mkt_sms', label: 'Marketing por SMS', channel: 'sms', required: false },
-      { id: 'analytics', label: 'Datos analíticos', channel: 'all', required: false }
-    ]
-  }, null, 2);
+  purposesResponse = JSON.stringify([
+    {
+      id: 1,
+      nombre: 'Marketing digital',
+      descripcion: 'Autorizacion para comunicaciones promocionales y novedades comerciales.',
+      baseLegal: 'Consentimiento expreso',
+      canales: [
+        { id: 1, nombre: 'Email', codigo: 'email' },
+        { id: 2, nombre: 'WhatsApp', codigo: 'whatsapp' }
+      ]
+    },
+    {
+      id: 2,
+      nombre: 'Analitica comercial',
+      descripcion: 'Uso de datos para medir campañas y mejorar la experiencia.',
+      baseLegal: 'Consentimiento expreso',
+      canales: [
+        { id: 1, nombre: 'Email', codigo: 'email' }
+      ]
+    }
+  ], null, 2);
 
   statusResponse = JSON.stringify({
     identifier: 'usuario@empresa.cl',
     consents: [
-      { purposeId: 'mkt_email', status: 'vigente', grantedAt: '2026-01-15T10:30:00Z' },
-      { purposeId: 'mkt_sms', status: 'revocado_total', revokedAt: '2026-03-01T08:00:00Z' }
+      {
+        purposeId: 1,
+        purposeName: 'Marketing digital',
+        channel: 'email',
+        status: 'vigente',
+        grantedAt: '2026-01-15T10:30:00Z',
+        expiresAt: '2027-01-15T10:30:00Z'
+      },
+      {
+        purposeId: 1,
+        purposeName: 'Marketing digital',
+        channel: 'whatsapp',
+        status: 'revocado_total',
+        grantedAt: '2026-01-15T10:30:00Z',
+        expiresAt: '2027-01-15T10:30:00Z'
+      }
     ]
   }, null, 2);
 
   grantBody = JSON.stringify({
     identifier: 'usuario@empresa.cl',
-    purposes: ['mkt_email', 'analytics'],
-    channel: 'email',
-    ipAddress: '203.0.113.1',
-    userAgent: 'Mozilla/5.0 ...'
+    purposes: [
+      {
+        idFinalidad: 1,
+        idCanales: [1, 2]
+      },
+      {
+        idFinalidad: 2,
+        idCanales: [1]
+      }
+    ],
+    acceptanceAction: 'CHECKBOX_ACCEPTED',
+    clientMetadata: {
+      ip: '203.0.113.1',
+      userAgent: 'Mozilla/5.0 ...',
+      pageUrl: 'https://www.miempresa.cl/preferencias'
+    }
   }, null, 2);
 
   revokeBody = JSON.stringify({
     identifier: 'usuario@empresa.cl',
-    purposes: ['mkt_sms'],
+    purposes: [
+      {
+        idFinalidad: 1,
+        idCanales: [2]
+      }
+    ],
     reason: 'Solicitud del titular (Art. 16 Ley 21.719)',
-    channel: 'sms'
+    clientMetadata: {
+      ip: '203.0.113.1',
+      userAgent: 'Mozilla/5.0 ...',
+      pageUrl: 'https://www.miempresa.cl/preferencias'
+    }
   }, null, 2);
 
   widgetSnippet = `<div id="trustgate-consent"></div>

@@ -100,7 +100,12 @@ interface ConsentItem {
                 <div class="checkbox-list">
                   @for (item of grantItems(); track item.purposeId + '_' + item.canalId) {
                     <label class="checkbox-item">
-                      <input type="checkbox" [(ngModel)]="item.selected" [name]="'grant_' + item.purposeId + '_' + item.canalId" />
+                      <input
+                        type="checkbox"
+                        [ngModel]="item.selected"
+                        (ngModelChange)="updateGrantSelection(item.purposeId, item.canalId, $event)"
+                        [name]="'grant_' + item.purposeId + '_' + item.canalId"
+                      />
                       <span>{{ item.purposeNombre }}</span>
                       <span class="channel-tag">{{ item.canalNombre }}</span>
                     </label>
@@ -113,7 +118,7 @@ interface ConsentItem {
                 class="btn btn-primary"
                 style="margin-top:12px"
                 (click)="grantConsent()"
-                [disabled]="loading() || !identifier || grantItems().length === 0"
+                [disabled]="loading() || !identifier || !hasSelectedGrantItems()"
               >
                 Otorgar seleccionados
               </button>
@@ -126,7 +131,12 @@ interface ConsentItem {
                 <div class="checkbox-list">
                   @for (item of revokeItems(); track item.purposeId + '_' + item.canalId) {
                     <label class="checkbox-item">
-                      <input type="checkbox" [(ngModel)]="item.selected" [name]="'revoke_' + item.purposeId + '_' + item.canalId" />
+                      <input
+                        type="checkbox"
+                        [ngModel]="item.selected"
+                        (ngModelChange)="updateRevokeSelection(item.purposeId, item.canalId, $event)"
+                        [name]="'revoke_' + item.purposeId + '_' + item.canalId"
+                      />
                       <span>{{ item.purposeNombre }}</span>
                       <span class="channel-tag">{{ item.canalNombre }}</span>
                     </label>
@@ -150,7 +160,7 @@ interface ConsentItem {
                 class="btn btn-outline"
                 style="margin-top:12px; border-color: var(--color-error); color: var(--color-error)"
                 (click)="revokeConsent()"
-                [disabled]="loading() || !identifier || revokeItems().length === 0"
+                [disabled]="loading() || !identifier || !hasSelectedRevokeItems()"
               >
                 Revocar seleccionados
               </button>
@@ -342,6 +352,37 @@ export class ApiDemoComponent implements OnInit {
     };
   }
 
+  private updateSelection(
+    itemsSignal: typeof this.grantItems,
+    purposeId: number,
+    canalId: number,
+    selected: boolean
+  ): void {
+    itemsSignal.update((items) =>
+      items.map((item) =>
+        item.purposeId === purposeId && item.canalId === canalId
+          ? { ...item, selected }
+          : item
+      )
+    );
+  }
+
+  updateGrantSelection(purposeId: number, canalId: number, selected: boolean): void {
+    this.updateSelection(this.grantItems, purposeId, canalId, selected);
+  }
+
+  updateRevokeSelection(purposeId: number, canalId: number, selected: boolean): void {
+    this.updateSelection(this.revokeItems, purposeId, canalId, selected);
+  }
+
+  hasSelectedGrantItems(): boolean {
+    return this.grantItems().some((item) => item.selected);
+  }
+
+  hasSelectedRevokeItems(): boolean {
+    return this.revokeItems().some((item) => item.selected);
+  }
+
   /** Aplana propósito × canal en una lista de ítems con checkbox */
   private flattenPurposes(list: Purpose[]): ConsentItem[] {
     return list.flatMap(p =>
@@ -413,7 +454,11 @@ export class ApiDemoComponent implements OnInit {
 
   async grantConsent(): Promise<void> {
     const grouped = this.groupSelected(this.grantItems());
-    if (grouped.length === 0) return;
+    if (grouped.length === 0) {
+      this.lastStatus.set(null);
+      this.responseText.set('Selecciona al menos una finalidad/canal para otorgar consentimiento.');
+      return;
+    }
     this.loading.set(true);
     try {
       const body = {
@@ -441,7 +486,11 @@ export class ApiDemoComponent implements OnInit {
 
   async revokeConsent(): Promise<void> {
     const grouped = this.groupSelected(this.revokeItems());
-    if (grouped.length === 0) return;
+    if (grouped.length === 0) {
+      this.lastStatus.set(null);
+      this.responseText.set('Selecciona al menos una finalidad/canal para revocar consentimiento.');
+      return;
+    }
     this.loading.set(true);
     try {
       const body = {

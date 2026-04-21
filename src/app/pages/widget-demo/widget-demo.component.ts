@@ -316,6 +316,11 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
   }
 
   launchWidget(): void {
+    if (!this.config.clientKey.trim() || !this.config.identifier.trim()) {
+      this.addLogEntry('error', 'Debes informar clientKey e identifier antes de lanzar el widget.');
+      return;
+    }
+
     this.removeWidgetScript();
     this.addLogEntry('info', `Lanzando widget en modo "${this.config.mode}" para "${this.config.identifier}"`);
 
@@ -338,6 +343,9 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     const script = document.createElement('script');
     script.src = '/assets/trustgate-widget.js';
     script.defer = true;
+    script.onload = () => {
+      this.addLogEntry('info', 'Widget cargado correctamente');
+    };
     script.onerror = () => {
       this.addLogEntry('error', 'No se pudo cargar trustgate-widget.js — asegúrate de que el archivo existe en /assets/');
     };
@@ -359,10 +367,17 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
   }
 
   private removeWidgetScript(): void {
+    const widgetInstance = (window as unknown as Record<string, unknown>)['TrustGateWidget'];
+    if (widgetInstance && typeof (widgetInstance as { destroy?: () => void }).destroy === 'function') {
+      (widgetInstance as { destroy: () => void }).destroy();
+    }
+
     if (this.scriptElement && this.scriptElement.parentNode) {
       this.scriptElement.parentNode.removeChild(this.scriptElement);
       this.scriptElement = null;
     }
+
+    delete (window as unknown as Record<string, unknown>)['TrustGateWidget'];
   }
 
   private addLogEntry(type: string, data: string): void {

@@ -226,7 +226,7 @@ export class QuickstartComponent {
       number: '4',
       title: 'Integra el widget',
       badge: 'Opción A',
-      description: 'Agrega tres líneas de código HTML a tu página para mostrar el centro de consentimiento. El widget se carga de forma asíncrona y no bloquea tu sitio.',
+      description: 'Agrega el widget a tu página y proporciona `clientKey` e `identifier`. El widget consulta automáticamente finalidades y estado actual del titular al cargarse.',
       code: `<div id="trustgate-consent"></div>
 <script>
   window.TrustGateConfig = {
@@ -234,11 +234,12 @@ export class QuickstartComponent {
     identifier: usuario.email,           // identificador del titular
     mode: 'modal',                       // 'banner' | 'modal' | 'inline'
     onGranted: (data) => console.log('Consentimiento otorgado', data),
-    onRevoked: (data) => console.log('Consentimiento revocado', data)
+    onRevoked: (data) => console.log('Consentimiento revocado', data),
+    onError: (err) => console.error('Error del widget', err)
   };
 </script>
 <script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget.js" defer></script>`,
-      note: 'Pasa el clientKey desde tu backend, nunca lo hardcodees en el frontend.'
+      note: 'Pasa el clientKey desde tu backend, nunca lo hardcodees en el frontend. Si usas modo inline, agrega además `targetId` con el id del contenedor.'
     },
     {
       number: '5',
@@ -251,8 +252,18 @@ curl -X POST https://api.trustgate.cl/api/v1/public/consent/grant \\
   -H "x-client-key: tgpub_xxxxxxxxxxxxxxxx" \\
   -d '{
     "identifier": "usuario@empresa.cl",
-    "purposes": ["mkt_email", "analytics"],
-    "channel": "email"
+    "purposes": [
+      {
+        "idFinalidad": 1,
+        "idCanales": [1, 2]
+      }
+    ],
+    "acceptanceAction": "CHECKBOX_ACCEPTED",
+    "clientMetadata": {
+      "ip": "203.0.113.1",
+      "userAgent": "Mozilla/5.0 ...",
+      "pageUrl": "https://www.miempresa.cl/preferencias"
+    }
   }'
 
 # Revocar consentimiento
@@ -261,10 +272,20 @@ curl -X POST https://api.trustgate.cl/api/v1/public/consent/revoke \\
   -H "x-client-key: tgpub_xxxxxxxxxxxxxxxx" \\
   -d '{
     "identifier": "usuario@empresa.cl",
-    "purposes": ["mkt_email"],
-    "reason": "Solicitud del titular"
+    "purposes": [
+      {
+        "idFinalidad": 1,
+        "idCanales": [2]
+      }
+    ],
+    "reason": "Solicitud del titular",
+    "clientMetadata": {
+      "ip": "203.0.113.1",
+      "userAgent": "Mozilla/5.0 ...",
+      "pageUrl": "https://www.miempresa.cl/preferencias"
+    }
   }'`,
-      note: undefined
+      note: 'Primero consulta `GET /consent/purposes` para obtener los ids reales de finalidad y canal habilitados para tu cliente.'
     },
     {
       number: '6',
@@ -273,13 +294,20 @@ curl -X POST https://api.trustgate.cl/api/v1/public/consent/revoke \\
       description: 'Antes de enviar cualquier comunicación de marketing, consulta el estado de consentimiento del titular para asegurarte de que tienes autorización vigente.',
       code: `# Verificar estado antes de campaña
 curl -H "x-client-key: tgpub_xxxxxxxxxxxxxxxx" \\
-  https://api.trustgate.cl/api/v1/public/consent/status/usuario@empresa.cl
+  "https://api.trustgate.cl/api/v1/public/consent/status?identifier=usuario@empresa.cl"
 
 # Respuesta esperada:
 {
   "identifier": "usuario@empresa.cl",
   "consents": [
-    { "purposeId": "mkt_email", "status": "vigente" }
+    {
+      "purposeId": 1,
+      "purposeName": "Marketing digital",
+      "channel": "email",
+      "status": "vigente",
+      "grantedAt": "2026-01-15T10:30:00Z",
+      "expiresAt": "2027-01-15T10:30:00Z"
+    }
   ]
 }`,
       note: 'Solo envía comunicaciones si el status es "vigente". Guarda un registro de la verificación como evidencia de cumplimiento.'
