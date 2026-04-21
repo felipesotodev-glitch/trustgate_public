@@ -130,6 +130,36 @@ async function proxyRequest(req, res, pathname, search) {
   res.end();
 }
 
+async function fetchUpstreamJson(req, pathname, search) {
+  const upstreamUrl = new URL(`${pathname}${search}`, BACKEND_INTERNAL_URL);
+  const headers = new Headers();
+
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (typeof value === 'string') {
+      headers.set(key, value);
+    } else if (Array.isArray(value)) {
+      headers.set(key, value.join(','));
+    }
+  }
+
+  headers.delete('host');
+  headers.delete('expect');
+  headers.delete('connection');
+
+  const response = await fetch(upstreamUrl, {
+    method: req.method,
+    headers
+  });
+
+  const contentType = response.headers.get('content-type') || '';
+  const body = contentType.includes('application/json') ? await response.json() : await response.text();
+
+  return {
+    status: response.status,
+    body
+  };
+}
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
@@ -148,6 +178,18 @@ const server = createServer(async (req, res) => {
         demoClientKey: DEMO_CLIENT_KEY,
         demoIdentifier: DEMO_IDENTIFIER
       });
+      return;
+    }
+
+    if (pathname === '/api/widget-demo/consent-status' && req.method === 'GET') {
+      const upstream = await fetchUpstreamJson(req, '/api/v1/public/consent/status', search);
+      if (upstream.status === 404) {
+        const identifier = url.searchParams.get('identifier') ?? '';
+        sendJson(res, 200, { identifier, consents: [] });
+        return;
+      }
+
+      sendJson(res, upstream.status, upstream.body);
       return;
     }
 

@@ -9,6 +9,7 @@
         identifier: typeof widgetConfig.identifier === 'string' ? widgetConfig.identifier.trim() : '',
         mode: allowedModes.has(widgetConfig.mode) ? widgetConfig.mode : 'banner',
         targetId: widgetConfig.targetId,
+        statusEndpoint: typeof widgetConfig.statusEndpoint === 'string' ? widgetConfig.statusEndpoint.trim() : '',
         skipInitialStatusCheck: widgetConfig.skipInitialStatusCheck === true,
         onGranted: widgetConfig.onGranted,
         onRevoked: widgetConfig.onRevoked,
@@ -84,10 +85,12 @@
 
       try {
         const purposesPromise = this.fetchJson('/api/v1/public/consent/purposes');
+        const statusUrl = (this.config.statusEndpoint || '/api/v1/public/consent/status')
+          + '?identifier=' + encodeURIComponent(this.config.identifier);
         const statusPromise = this.config.skipInitialStatusCheck
           ? Promise.resolve(null)
           : this.fetchJson(
-              '/api/v1/public/consent/status?identifier=' + encodeURIComponent(this.config.identifier),
+              statusUrl,
               { allowNotFound: true }
             );
 

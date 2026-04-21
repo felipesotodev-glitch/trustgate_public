@@ -336,7 +336,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       identifier: this.config.identifier,
       mode: this.config.mode,
       targetId: this.config.mode === 'inline' ? 'inline-target' : undefined,
-      skipInitialStatusCheck: true,
+      statusEndpoint: '/api/widget-demo/consent-status',
       onGranted: (data: unknown) => {
         this.addLogEntry('granted', JSON.stringify(data, null, 2));
       },
