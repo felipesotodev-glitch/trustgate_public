@@ -6,6 +6,7 @@ import { Readable } from 'node:stream';
 const PORT = Number.parseInt(process.env.PORT ?? '80', 10);
 const BACKEND_INTERNAL_URL = process.env.BACKEND_INTERNAL_URL ?? 'http://127.0.0.1:8080';
 const DEMO_CLIENT_KEY = process.env.DEMO_CLIENT_KEY ?? '';
+const DEMO_IDENTIFIER = process.env.DEMO_IDENTIFIER ?? 'demo@trustgate.cl';
 const WEB_ROOT = join(process.cwd(), 'public');
 
 const MIME_TYPES = {
@@ -131,7 +132,10 @@ const server = createServer(async (req, res) => {
 
     // Ruta pública de configuración para demos (no requiere autenticación)
     if (pathname === '/api/public-config' && req.method === 'GET') {
-      sendJson(res, 200, { demoClientKey: DEMO_CLIENT_KEY });
+      sendJson(res, 200, {
+        demoClientKey: DEMO_CLIENT_KEY,
+        demoIdentifier: DEMO_IDENTIFIER
+      });
       return;
     }
 
@@ -172,4 +176,5 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`TrustGate Public listening on port ${PORT}`);
   console.log(`Backend target: ${BACKEND_INTERNAL_URL}`);
   console.log(`Demo client key configured: ${DEMO_CLIENT_KEY ? 'yes' : 'no'}`);
+  console.log(`Demo identifier configured: ${DEMO_IDENTIFIER}`);
 });

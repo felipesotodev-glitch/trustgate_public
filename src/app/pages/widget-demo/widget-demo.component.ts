@@ -7,6 +7,8 @@ interface WidgetConfig {
   mode: 'banner' | 'modal' | 'inline';
 }
 
+const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
+
 @Component({
   selector: 'tp-widget-demo',
   standalone: true,
@@ -48,6 +50,7 @@ interface WidgetConfig {
               <div class="form-group">
                 <label class="form-label" for="identifier">
                   Identificador del titular
+                  <span class="form-hint">Se autocompleta con un identificador de prueba para la demo</span>
                 </label>
                 <input
                   id="identifier"
@@ -55,7 +58,7 @@ interface WidgetConfig {
                   class="form-control"
                   [(ngModel)]="config.identifier"
                   name="identifier"
-                  placeholder="rut@empresa.cl"
+                  placeholder="demo@trustgate.cl"
                   autocomplete="off"
                   required
                 />
@@ -285,7 +288,7 @@ interface WidgetConfig {
 export class WidgetDemoComponent implements OnInit, OnDestroy {
   config: WidgetConfig = {
     clientKey: '',
-    identifier: '',
+    identifier: DEFAULT_DEMO_IDENTIFIER,
     mode: 'banner'
   };
 
@@ -305,10 +308,11 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     try {
       const response = await fetch('/api/public-config');
       if (response.ok) {
-        const data = await response.json() as { demoClientKey?: string };
+        const data = await response.json() as { demoClientKey?: string; demoIdentifier?: string };
         if (data.demoClientKey) {
           this.config.clientKey = data.demoClientKey;
         }
+        this.config.identifier = data.demoIdentifier?.trim() || this.config.identifier || DEFAULT_DEMO_IDENTIFIER;
       }
     } catch {
       this.addLogEntry('info', 'No se pudo cargar la config del servidor (modo desarrollo)');
@@ -316,8 +320,10 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
   }
 
   launchWidget(): void {
-    if (!this.config.clientKey.trim() || !this.config.identifier.trim()) {
-      this.addLogEntry('error', 'Debes informar clientKey e identifier antes de lanzar el widget.');
+    this.config.identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
+
+    if (!this.config.clientKey.trim()) {
+      this.addLogEntry('error', 'Debes informar clientKey antes de lanzar el widget.');
       return;
     }
 
