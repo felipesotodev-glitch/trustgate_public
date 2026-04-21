@@ -97,7 +97,7 @@ interface ConsentItem {
             <div class="card apidemo-card">
               <h2>Otorgar consentimiento</h2>
               @if (purposes().length > 0) {
-                <div class="checkbox-list">
+                <div class="checkbox-list checkbox-list--scrollable">
                   @for (item of grantItems(); track item.purposeId + '_' + item.canalId) {
                     <label class="checkbox-item">
                       <input
@@ -128,7 +128,7 @@ interface ConsentItem {
             <div class="card apidemo-card">
               <h2>Revocar consentimiento</h2>
               @if (purposes().length > 0) {
-                <div class="checkbox-list">
+                <div class="checkbox-list checkbox-list--scrollable">
                   @for (item of revokeItems(); track item.purposeId + '_' + item.canalId) {
                     <label class="checkbox-item">
                       <input
@@ -241,6 +241,12 @@ interface ConsentItem {
       display: flex;
       flex-direction: column;
       gap: 8px;
+    }
+
+    .checkbox-list--scrollable {
+      max-height: calc((10 * 42px) + (9 * 8px));
+      overflow-y: auto;
+      padding-right: 4px;
     }
 
     .checkbox-item {
