@@ -122,6 +122,19 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
 
           <!-- Preview + log -->
           <div class="demo-preview">
+            <div class="integration-code card" aria-label="Código de integración generado">
+              <div class="integration-code__header">
+                <div>
+                  <p class="integration-code__eyebrow">Código generado</p>
+                  <h3>Snippet listo para integrar</h3>
+                </div>
+              </div>
+              <p class="integration-code__hint">
+                Este bloque se construye según tu configuración actual. Ajusta modo, identificador y filtros para ver el código final que deberías incrustar en tu sitio.
+              </p>
+              <pre class="integration-code__pre"><code>{{ buildIntegrationSnippet() }}</code></pre>
+            </div>
+
             <!-- Inline target -->
             @if (config.mode === 'inline') {
               <div class="inline-target-wrapper card" aria-label="Área del widget inline">
@@ -217,6 +230,42 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    .integration-code__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .integration-code__eyebrow {
+      font-size: var(--font-size-xs);
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .integration-code__header h3 {
+      font-size: var(--font-size-lg);
+    }
+
+    .integration-code__hint {
+      font-size: var(--font-size-sm);
+      color: var(--color-muted);
+      margin-bottom: 16px;
+    }
+
+    .integration-code__pre {
+      margin: 0;
+      max-height: 420px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: var(--font-size-xs);
     }
 
     .inline-target-wrapper {
@@ -413,6 +462,46 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       .split(',')
       .map((item) => item.trim().toLowerCase())
       .filter((item) => item.length > 0);
+  }
+
+  buildIntegrationSnippet(): string {
+    const identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
+    const purposeIds = this.parseNumericList(this.config.purposeIdsText);
+    const channelCodes = this.parseStringList(this.config.channelCodesText);
+    const configLines = [
+      `  clientKey: '${this.escapeForSnippet(this.config.clientKey.trim() || 'tgpub_xxxxxxxxxxxxxxxx')}',`,
+      `  identifier: '${this.escapeForSnippet(identifier)}',`,
+      `  mode: '${this.config.mode}',`
+    ];
+
+    if (this.config.mode === 'inline') {
+      configLines.push(`  targetId: 'trustgate-inline-target',`);
+    }
+
+    if (purposeIds.length > 0) {
+      configLines.push(`  purposeIds: [${purposeIds.join(', ')}],`);
+    }
+
+    if (channelCodes.length > 0) {
+      const quotedChannelCodes = channelCodes.map((item) => `'${this.escapeForSnippet(item)}'`).join(', ');
+      configLines.push(`  channelCodes: [${quotedChannelCodes}],`);
+    }
+
+    configLines.push(`  onGranted: (data) => console.log('Consentimiento otorgado', data),`);
+    configLines.push(`  onRevoked: (data) => console.log('Consentimiento revocado', data),`);
+    configLines.push(`  onError: (error) => console.error('Error del widget', error)`);
+
+    const inlineTargetMarkup = this.config.mode === 'inline'
+      ? '<div id="trustgate-inline-target"></div>\n\n'
+      : '';
+
+    return `${inlineTargetMarkup}<script>\nwindow.TrustGateConfig = {\n${configLines.join('\n')}\n};\n</script>\n<script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget.js" defer></script>`;
+  }
+
+  private escapeForSnippet(value: string): string {
+    return String(value || '')
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'");
   }
 
   closeWidget(): void {
