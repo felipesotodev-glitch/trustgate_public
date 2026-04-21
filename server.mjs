@@ -72,6 +72,18 @@ function resolveStaticFile(pathname) {
   return join(WEB_ROOT, 'index.html');
 }
 
+function resolveCacheControl(pathname, isHtml) {
+  if (isHtml) {
+    return 'no-store, must-revalidate';
+  }
+
+  if (pathname === '/assets/trustgate-widget.js') {
+    return 'no-store, must-revalidate';
+  }
+
+  return 'public, max-age=31536000, immutable';
+}
+
 async function proxyRequest(req, res, pathname, search) {
   const upstreamUrl = new URL(`${pathname}${search}`, BACKEND_INTERNAL_URL);
   const headers = new Headers();
@@ -162,7 +174,7 @@ const server = createServer(async (req, res) => {
 
     res.writeHead(200, withSecurityHeaders({
       'Content-Type': contentType,
-      'Cache-Control': isHtml ? 'no-store, must-revalidate' : 'public, max-age=31536000, immutable'
+      'Cache-Control': resolveCacheControl(pathname, isHtml)
     }));
 
     createReadStream(filePath).pipe(res);

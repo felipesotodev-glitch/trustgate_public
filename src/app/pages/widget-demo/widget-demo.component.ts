@@ -8,6 +8,7 @@ interface WidgetConfig {
 }
 
 const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
+const WIDGET_ASSET_VERSION = '2026-04-20-01';
 
 @Component({
   selector: 'tp-widget-demo',
@@ -347,7 +348,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     };
 
     const script = document.createElement('script');
-    script.src = '/assets/trustgate-widget.js';
+    script.src = `/assets/trustgate-widget.js?v=${WIDGET_ASSET_VERSION}`;
     script.defer = true;
     script.onload = () => {
       this.addLogEntry('info', 'Widget cargado correctamente');
