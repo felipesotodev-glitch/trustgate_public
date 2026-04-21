@@ -10,6 +10,9 @@
         mode: allowedModes.has(widgetConfig.mode) ? widgetConfig.mode : 'banner',
         targetId: widgetConfig.targetId,
         statusEndpoint: typeof widgetConfig.statusEndpoint === 'string' ? widgetConfig.statusEndpoint.trim() : '',
+        purposeIds: this.normalizeNumericList(widgetConfig.purposeIds),
+        channelIds: this.normalizeNumericList(widgetConfig.channelIds),
+        channelCodes: this.normalizeStringList(widgetConfig.channelCodes),
         skipInitialStatusCheck: widgetConfig.skipInitialStatusCheck === true,
         onGranted: widgetConfig.onGranted,
         onRevoked: widgetConfig.onRevoked,
@@ -102,8 +105,8 @@
             );
 
         const [purposes, status] = await Promise.all([purposesPromise, statusPromise]);
-        this.state.purposes = Array.isArray(purposes) ? purposes : [];
-        this.state.consents = status && Array.isArray(status.consents) ? status.consents : [];
+        this.state.purposes = this.filterPurposes(purposes);
+        this.state.consents = status ? this.filterConsents(status.consents) : [];
         if (this.config.skipInitialStatusCheck) {
           this.state.info = 'Estado inicial omitido para la demo; puedes otorgar consentimiento y luego actualizar.';
         } else if (status && status.notFound) {
@@ -163,6 +166,68 @@
         return payload.error;
       }
       return '';
+    }
+
+    normalizeNumericList(value) {
+      if (!Array.isArray(value)) {
+        return [];
+      }
+
+      return value
+        .map((item) => Number(item))
+        .filter((item) => Number.isInteger(item) && item > 0);
+    }
+
+    normalizeStringList(value) {
+      if (!Array.isArray(value)) {
+        return [];
+      }
+
+      return value
+        .map((item) => String(item || '').trim().toLowerCase())
+        .filter((item) => item.length > 0);
+    }
+
+    filterPurposes(purposes) {
+      const purposeIds = new Set(this.config.purposeIds);
+      const channelIds = new Set(this.config.channelIds);
+      const channelCodes = new Set(this.config.channelCodes);
+      const filterByPurpose = purposeIds.size > 0;
+      const filterByChannel = channelIds.size > 0 || channelCodes.size > 0;
+
+      return (Array.isArray(purposes) ? purposes : [])
+        .filter((purpose) => !filterByPurpose || purposeIds.has(purpose.id))
+        .map((purpose) => ({
+          ...purpose,
+          canales: (purpose.canales || []).filter((channel) => {
+            if (!filterByChannel) {
+              return true;
+            }
+
+            return channelIds.has(channel.id) || channelCodes.has(String(channel.codigo || '').trim().toLowerCase());
+          })
+        }))
+        .filter((purpose) => purpose.canales.length > 0 || !filterByChannel);
+    }
+
+    filterConsents(consents) {
+      const purposeIds = new Set(this.config.purposeIds);
+      const channelIds = new Set(this.config.channelIds);
+      const channelCodes = new Set(this.config.channelCodes);
+      const filterByPurpose = purposeIds.size > 0;
+      const filterByChannel = channelIds.size > 0 || channelCodes.size > 0;
+
+      return (Array.isArray(consents) ? consents : []).filter((item) => {
+        if (filterByPurpose && !purposeIds.has(item.purposeId)) {
+          return false;
+        }
+
+        if (!filterByChannel) {
+          return true;
+        }
+
+        return channelIds.has(item.channelId) || channelCodes.has(String(item.channel || '').trim().toLowerCase());
+      });
     }
 
     getConsentStatus(purposeId, channelCode) {

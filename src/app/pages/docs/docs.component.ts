@@ -136,12 +136,18 @@ import { RouterLink } from '@angular/router';
                 <tr><td><code>identifier</code></td><td>string</td><td>Identificador único del titular</td></tr>
                 <tr><td><code>mode</code></td><td>banner | modal | inline</td><td>Modo de presentación del widget</td></tr>
                 <tr><td><code>targetId</code></td><td>string</td><td>ID del contenedor para modo inline</td></tr>
+                <tr><td><code>purposeIds</code></td><td>number[]</td><td>Opcional. Limita las finalidades visibles del widget</td></tr>
+                <tr><td><code>channelIds</code></td><td>number[]</td><td>Opcional. Limita los canales visibles por ID</td></tr>
+                <tr><td><code>channelCodes</code></td><td>string[]</td><td>Opcional. Limita los canales visibles por código, por ejemplo <code>email</code> o <code>sms</code></td></tr>
                 <tr><td><code>onGranted</code></td><td>function</td><td>Callback al otorgar consentimiento</td></tr>
                 <tr><td><code>onRevoked</code></td><td>function</td><td>Callback al revocar consentimiento</td></tr>
                 <tr><td><code>onError</code></td><td>function</td><td>Callback en caso de error</td></tr>
               </tbody>
             </table>
           </div>
+          <p>
+            Si tu sitio o integración no necesita exponer todo el catálogo, puedes limitar lo que se renderiza enviando <code>purposeIds</code>, <code>channelIds</code> o <code>channelCodes</code> en <code>window.TrustGateConfig</code>.
+          </p>
         </section>
 
         <hr class="divider" />

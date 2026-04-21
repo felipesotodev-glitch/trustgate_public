@@ -233,13 +233,15 @@ export class QuickstartComponent {
     clientKey: 'tgpub_xxxxxxxxxxxxxxxx', // desde tu servidor
     identifier: usuario.email,           // identificador del titular
     mode: 'modal',                       // 'banner' | 'modal' | 'inline'
+    purposeIds: [1, 2],                  // opcional: limita finalidades visibles
+    channelCodes: ['email', 'sms'],      // opcional: limita canales visibles
     onGranted: (data) => console.log('Consentimiento otorgado', data),
     onRevoked: (data) => console.log('Consentimiento revocado', data),
     onError: (err) => console.error('Error del widget', err)
   };
 </script>
 <script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget.js" defer></script>`,
-      note: 'Pasa el clientKey desde tu backend, nunca lo hardcodees en el frontend. Si usas modo inline, agrega además `targetId` con el id del contenedor.'
+      note: 'Pasa el clientKey desde tu backend, nunca lo hardcodees en el frontend. Si usas modo inline, agrega además `targetId` con el id del contenedor. Si tu integración no necesita todo el catálogo, usa `purposeIds` y/o `channelCodes` para limitar lo que el widget muestra.'
     },
     {
       number: '5',

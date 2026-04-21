@@ -5,10 +5,12 @@ interface WidgetConfig {
   clientKey: string;
   identifier: string;
   mode: 'banner' | 'modal' | 'inline';
+  purposeIdsText: string;
+  channelCodesText: string;
 }
 
 const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
-const WIDGET_ASSET_VERSION = '2026-04-20-01';
+const WIDGET_ASSET_VERSION = '2026-04-20-02';
 
 @Component({
   selector: 'tp-widget-demo',
@@ -79,6 +81,38 @@ const WIDGET_ASSET_VERSION = '2026-04-20-01';
                 </select>
               </div>
 
+              <div class="form-group">
+                <label class="form-label" for="purposeIdsText">
+                  Finalidades a mostrar
+                  <span class="form-hint">Opcional. IDs separados por coma. Ejemplo: 1,2,5</span>
+                </label>
+                <input
+                  id="purposeIdsText"
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="config.purposeIdsText"
+                  name="purposeIdsText"
+                  placeholder="1,2,5"
+                  autocomplete="off"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="channelCodesText">
+                  Canales a mostrar
+                  <span class="form-hint">Opcional. Códigos separados por coma. Ejemplo: email,sms,whatsapp</span>
+                </label>
+                <input
+                  id="channelCodesText"
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="config.channelCodesText"
+                  name="channelCodesText"
+                  placeholder="email,sms"
+                  autocomplete="off"
+                />
+              </div>
+
               <div class="demo-actions">
                 <button type="submit" class="btn btn-primary">Lanzar widget</button>
                 <button type="button" class="btn btn-outline" (click)="closeWidget()">Cerrar widget</button>
@@ -146,11 +180,11 @@ const WIDGET_ASSET_VERSION = '2026-04-20-01';
         grid-template-columns: 320px 1fr;
         align-items: start;
       }
-    }
 
-    .demo-config {
-      position: sticky;
-      top: 80px;
+      .demo-config {
+        position: sticky;
+        top: 80px;
+      }
     }
 
     .demo-config h2 {
@@ -290,7 +324,9 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
   config: WidgetConfig = {
     clientKey: '',
     identifier: DEFAULT_DEMO_IDENTIFIER,
-    mode: 'banner'
+    mode: 'banner',
+    purposeIdsText: '',
+    channelCodesText: ''
   };
 
   eventLog = signal<Array<{ timestamp: string; type: string; data: string }>>([]);
@@ -322,6 +358,8 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
 
   launchWidget(): void {
     this.config.identifier = this.config.identifier.trim() || DEFAULT_DEMO_IDENTIFIER;
+    const purposeIds = this.parseNumericList(this.config.purposeIdsText);
+    const channelCodes = this.parseStringList(this.config.channelCodesText);
 
     if (!this.config.clientKey.trim()) {
       this.addLogEntry('error', 'Debes informar clientKey antes de lanzar el widget.');
@@ -337,6 +375,8 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       mode: this.config.mode,
       targetId: this.config.mode === 'inline' ? 'inline-target' : undefined,
       statusEndpoint: '/api/widget-demo/consent-status',
+      purposeIds: purposeIds,
+      channelCodes: channelCodes,
       onGranted: (data: unknown) => {
         this.addLogEntry('granted', JSON.stringify(data, null, 2));
       },
@@ -359,6 +399,20 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     };
     document.body.appendChild(script);
     this.scriptElement = script;
+  }
+
+  private parseNumericList(value: string): number[] {
+    return String(value || '')
+      .split(',')
+      .map((item) => Number(item.trim()))
+      .filter((item) => Number.isInteger(item) && item > 0);
+  }
+
+  private parseStringList(value: string): string[] {
+    return String(value || '')
+      .split(',')
+      .map((item) => item.trim().toLowerCase())
+      .filter((item) => item.length > 0);
   }
 
   closeWidget(): void {
