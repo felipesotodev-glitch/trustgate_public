@@ -408,17 +408,22 @@
 
         if (action === 'revoke') {
           this.clearSelections();
-        }
-        await this.loadData();
-        this.state.info = action === 'grant'
-          ? 'Consentimiento otorgado correctamente.'
-          : 'Consentimiento revocado correctamente.';
-
-        if (action === 'grant' && typeof this.config.onGranted === 'function') {
-          this.config.onGranted(response);
-        }
-        if (action === 'revoke' && typeof this.config.onRevoked === 'function') {
-          this.config.onRevoked(response);
+          await this.loadData();
+          this.state.info = 'Consentimiento revocado correctamente.';
+          if (typeof this.config.onRevoked === 'function') {
+            this.config.onRevoked(response);
+          }
+        } else if (action === 'grant' && response.status === 'pending_authorization') {
+          this.state.info = `Enlace de autorización enviado a ${response.maskedEmail}. Revisa tu correo y confirma el consentimiento para que quede registrado.`;
+          if (typeof this.config.onGranted === 'function') {
+            this.config.onGranted(response);
+          }
+        } else {
+          await this.loadData();
+          this.state.info = 'Consentimiento otorgado correctamente.';
+          if (action === 'grant' && typeof this.config.onGranted === 'function') {
+            this.config.onGranted(response);
+          }
         }
         this.render();
       } catch (error) {
