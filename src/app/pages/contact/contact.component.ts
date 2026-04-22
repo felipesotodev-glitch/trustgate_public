@@ -1,5 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 interface ContactForm {
   name: string;
@@ -12,7 +15,7 @@ interface ContactForm {
 @Component({
   selector: 'tp-contact',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   template: `
     <section class="section">
       <div class="container contact-layout">
@@ -138,6 +141,12 @@ interface ContactForm {
                   }
                 </div>
 
+                @if (submitError()) {
+                  <div class="contact-form__error" role="alert">
+                    {{ submitError() }}
+                  </div>
+                }
+
                 <div class="contact-form__footer">
                   <p class="contact-form__privacy">
                     Al enviar este formulario, aceptas que TrustGate procese tus datos para atender tu solicitud, conforme a nuestra política de privacidad.
@@ -145,9 +154,9 @@ interface ContactForm {
                   <button
                     type="submit"
                     class="btn btn-primary btn-lg"
-                    [disabled]="contactForm.invalid"
+                    [disabled]="contactForm.invalid || submitting()"
                   >
-                    Enviar solicitud
+                    {{ submitting() ? 'Enviando...' : 'Enviar solicitud' }}
                   </button>
                 </div>
               </form>
@@ -379,7 +388,11 @@ interface ContactForm {
   `]
 })
 export class ContactComponent {
+  private readonly http = inject(HttpClient);
+
   submitted = signal(false);
+  submitting = signal(false);
+  submitError = signal('');
 
   form: ContactForm = {
     name: '',
@@ -389,12 +402,35 @@ export class ContactComponent {
     message: ''
   };
 
-  submitForm(): void {
-    this.submitted.set(true);
+  async submitForm(): Promise<void> {
+    this.submitting.set(true);
+    this.submitError.set('');
+    try {
+      await firstValueFrom(
+        this.http.post('/api/v1/public/contact', this.form)
+      );
+      this.submitted.set(true);
+    } catch (err: unknown) {
+      const apiMessage = this.extractApiError(err);
+      this.submitError.set(apiMessage);
+    } finally {
+      this.submitting.set(false);
+    }
   }
 
   resetForm(): void {
     this.form = { name: '', company: '', email: '', integrationType: '', message: '' };
     this.submitted.set(false);
+    this.submitError.set('');
+  }
+
+  private extractApiError(err: unknown): string {
+    if (err && typeof err === 'object' && 'error' in err) {
+      const body = (err as { error: unknown }).error;
+      if (body && typeof body === 'object' && 'detail' in body) {
+        return String((body as { detail: unknown }).detail);
+      }
+    }
+    return 'No se pudo enviar la solicitud. Por favor intenta nuevamente en unos minutos.';
   }
 }
