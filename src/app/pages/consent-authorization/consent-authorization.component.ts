@@ -130,9 +130,62 @@ interface NavigatorWithUAData extends Navigator {
           </section>
         } @else if (completed()) {
           <section class="content-card state-card state-card--success">
-            <h2>Autorización registrada</h2>
-            <p>La aceptación quedó almacenada con su bloque técnico de auditoría.</p>
-            <pre>{{ completionText() }}</pre>
+            <div class="completion-header">
+              <span class="completion-badge" aria-hidden="true">✔</span>
+              <div>
+                <h2>Autorización registrada</h2>
+                <p>Tu consentimiento quedó almacenado con bloque técnico de auditoría conforme a la Ley 21.719.</p>
+              </div>
+            </div>
+
+            <dl class="completion-summary">
+              <div>
+                <dt>Titular</dt>
+                <dd>{{ authorizationInfo()?.titularName }}</dd>
+              </div>
+              <div>
+                <dt>Correo notificado</dt>
+                <dd>{{ authorizationInfo()?.email }}</dd>
+              </div>
+              <div>
+                <dt>Fecha de aceptación</dt>
+                <dd>{{ completedAt() | date:'dd/MM/yyyy HH:mm:ss' }}</dd>
+              </div>
+              <div>
+                <dt>Identificador de evento</dt>
+                <dd><code>{{ completionEventId() }}</code></dd>
+              </div>
+            </dl>
+
+            @if (completedChannels().length > 0) {
+              <div class="completion-section">
+                <h3>Canales autorizados</h3>
+                <ul class="completion-channels">
+                  @for (entry of completedChannels(); track entry.key) {
+                    <li>
+                      <strong>{{ entry.purposeName }}</strong>
+                      <span class="completion-channel">{{ entry.channelName }}</span>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (completionConsentIds().length > 0) {
+              <div class="completion-section">
+                <h3>Consentimientos generados</h3>
+                <ul class="completion-consent-ids">
+                  @for (id of completionConsentIds(); track id) {
+                    <li><code>{{ id }}</code></li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <details class="completion-audit">
+              <summary>Ver bloque técnico de auditoría</summary>
+              <pre>{{ completionText() }}</pre>
+            </details>
           </section>
         } @else if (authorizationInfo()) {
           <div class="content-grid">
@@ -340,6 +393,159 @@ interface NavigatorWithUAData extends Navigator {
 
     .state-card--success {
       border-color: rgba(20, 83, 45, 0.22);
+      background: linear-gradient(180deg, #f3fbf6, #ffffff);
+    }
+
+    .completion-header {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .completion-header h2 {
+      margin: 0 0 6px;
+    }
+
+    .completion-header p {
+      margin: 0;
+      color: #4b5f73;
+    }
+
+    .completion-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #16a34a;
+      color: #ffffff;
+      font-size: 1.4rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .completion-summary {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin: 0 0 22px;
+      padding: 16px;
+      border-radius: 14px;
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .completion-summary dt {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .completion-summary dd {
+      margin: 0;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .completion-summary code {
+      font-family: 'SFMono-Regular', Menlo, monospace;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.06);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .completion-section {
+      margin-bottom: 18px;
+    }
+
+    .completion-section h3 {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      color: #0f172a;
+    }
+
+    .completion-channels,
+    .completion-consent-ids {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .completion-channels li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(22, 163, 74, 0.08);
+      border: 1px solid rgba(22, 163, 74, 0.18);
+    }
+
+    .completion-channel {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #166534;
+      background: #ffffff;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(22, 163, 74, 0.3);
+    }
+
+    .completion-consent-ids li {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.04);
+      font-family: 'SFMono-Regular', Menlo, monospace;
+      font-size: 0.82rem;
+      word-break: break-all;
+    }
+
+    .completion-audit {
+      margin-top: 12px;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #ffffff;
+    }
+
+    .completion-audit summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #1e293b;
+      list-style: none;
+    }
+
+    .completion-audit summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .completion-audit summary::before {
+      content: '▸ ';
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+
+    .completion-audit[open] summary::before {
+      content: '▾ ';
+    }
+
+    .completion-audit pre {
+      margin: 12px 0 0;
+      padding: 12px;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 0.78rem;
+      line-height: 1.5;
     }
 
     h2 {
@@ -559,6 +765,10 @@ export class ConsentAuthorizationComponent implements OnInit {
   readonly submitMessage = signal('');
   readonly submitError = signal(false);
   readonly completionText = signal('');
+  readonly completionEventId = signal('');
+  readonly completedAt = signal('');
+  readonly completionConsentIds = signal<string[]>([]);
+  readonly completedChannels = signal<Array<{ key: string; purposeName: string; channelName: string }>>([]);
 
   token = '';
   rut = '';
@@ -740,7 +950,12 @@ export class ConsentAuthorizationComponent implements OnInit {
         throw new Error(body?.detail || 'No fue posible registrar la autorización.');
       }
 
-      this.completionText.set(JSON.stringify(body as CompletionResponse, null, 2));
+      const completion = body as CompletionResponse;
+      this.completionText.set(JSON.stringify(completion, null, 2));
+      this.completionEventId.set(completion.eventId ?? '');
+      this.completedAt.set(completion.completedAt ?? '');
+      this.completionConsentIds.set(Array.isArray(completion.consentIds) ? completion.consentIds : []);
+      this.completedChannels.set(this.buildCompletedChannelsList());
       this.completed.set(true);
     } catch (error) {
       this.submitError.set(true);
@@ -748,6 +963,29 @@ export class ConsentAuthorizationComponent implements OnInit {
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  private buildCompletedChannelsList(): Array<{ key: string; purposeName: string; channelName: string }> {
+    const info = this.authorizationInfo();
+    if (!info) {
+      return [];
+    }
+    const result: Array<{ key: string; purposeName: string; channelName: string }> = [];
+    for (const purpose of info.purposes) {
+      const selected = this.selectedChannels.get(purpose.id);
+      for (const channel of purpose.canales) {
+        const isAlreadyActive = channel.active;
+        const wasSelected = selected?.has(channel.id) ?? false;
+        if (isAlreadyActive || wasSelected) {
+          result.push({
+            key: `${purpose.id}-${channel.id}`,
+            purposeName: purpose.nombre,
+            channelName: channel.nombre
+          });
+        }
+      }
+    }
+    return result;
   }
 
   private async loadAuthorizationInfo(): Promise<void> {
