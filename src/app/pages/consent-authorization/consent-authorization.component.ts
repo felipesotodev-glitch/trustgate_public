@@ -179,7 +179,7 @@ interface NavigatorWithUAData extends Navigator {
 
             <section class="content-card form-card">
               <h2>Canales disponibles para autorizar</h2>
-              <p class="section-hint">Selecciona los canales que autorizas. Los que ya están vigentes se muestran bloqueados para no duplicar consentimiento.</p>
+              <p class="section-hint">Estos canales fueron solicitados. Los que ya están vigentes se muestran bloqueados. Puedes desmarcar los que no deseas autorizar.</p>
 
               @for (purpose of authorizationInfo()!.purposes; track purpose.id) {
                 <article class="purpose-card">
@@ -760,10 +760,23 @@ export class ConsentAuthorizationComponent implements OnInit {
       }
       this.authorizationInfo.set(body as AuthorizationInfoResponse);
       this.noticeDisplayedAt = new Date().toISOString();
+      this.preSelectGrantedChannels(body as AuthorizationInfoResponse);
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'No fue posible cargar la solicitud.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private preSelectGrantedChannels(info: AuthorizationInfoResponse): void {
+    this.selectedChannels.clear();
+    for (const purpose of info.purposes ?? []) {
+      const channelIds = (purpose.canales ?? [])
+        .filter(c => !c.active)
+        .map(c => c.id);
+      if (channelIds.length > 0) {
+        this.selectedChannels.set(purpose.id, new Set(channelIds));
+      }
     }
   }
 
