@@ -99,6 +99,7 @@ async function proxyRequest(req, res, pathname, search) {
   headers.delete('host');
   headers.delete('expect');
   headers.delete('connection');
+  headers.delete('origin');
 
   const hasBody = !['GET', 'HEAD'].includes(req.method ?? 'GET');
   const response = await fetch(upstreamUrl, {
@@ -145,6 +146,7 @@ async function fetchUpstreamJson(req, pathname, search) {
   headers.delete('host');
   headers.delete('expect');
   headers.delete('connection');
+  headers.delete('origin');
 
   const response = await fetch(upstreamUrl, {
     method: req.method,
