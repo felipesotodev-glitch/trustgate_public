@@ -22,6 +22,14 @@ export const routes: Routes = [
     title: 'Demo Widget — TrustGate'
   },
   {
+    path: 'widget-simple',
+    loadComponent: () =>
+      import('./pages/simple-widget-demo/simple-widget-demo.component').then(
+        (m) => m.SimpleWidgetDemoComponent
+      ),
+    title: 'Widget Simplificado — TrustGate'
+  },
+  {
     path: 'api-demo',
     loadComponent: () =>
       import('./pages/api-demo/api-demo.component').then(

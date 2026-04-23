@@ -40,6 +40,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
             <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Inicio</a></li>
             <li><a routerLink="/docs" routerLinkActive="active" (click)="closeMenu()">Documentación</a></li>
             <li><a routerLink="/widget-demo" routerLinkActive="active" (click)="closeMenu()">Demo Widget</a></li>
+            <li><a routerLink="/widget-simple" routerLinkActive="active" (click)="closeMenu()">Widget Simple</a></li>
             <li><a routerLink="/api-demo" routerLinkActive="active" (click)="closeMenu()">Demo API</a></li>
             <li><a routerLink="/quickstart" routerLinkActive="active" (click)="closeMenu()">Quickstart</a></li>
             <li><a routerLink="/contacto" routerLinkActive="active" (click)="closeMenu()">Contacto</a></li>
