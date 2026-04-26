@@ -158,6 +158,7 @@ const API_DEMO_DEFAULT_REVOKE_REASON = 'Solicitud del titular (Art. 16 Ley 21.71
     </section>
   `,
   styles: [`
+    /* US-6301 técnica: normaliza estados visuales de ejecución API con tokens de semáforo institucional. */
     .page-header {
       margin-bottom: 40px;
     }
@@ -251,13 +252,13 @@ const API_DEMO_DEFAULT_REVOKE_REASON = 'Solicitud del titular (Art. 16 Ley 21.71
     }
 
     .apidemo-log-entry--success {
-      border-color: #86efac;
-      background: #f0fdf4;
+      border-color: var(--color-success-border);
+      background: var(--color-success-bg);
     }
 
     .apidemo-log-entry--error {
-      border-color: #fecaca;
-      background: #fef2f2;
+      border-color: var(--color-error-border);
+      background: var(--color-error-bg);
     }
 
     .apidemo-log-entry__meta {
@@ -343,8 +344,8 @@ const API_DEMO_DEFAULT_REVOKE_REASON = 'Solicitud del titular (Art. 16 Ley 21.71
       font-weight: 700;
     }
 
-    .status-ok { background: #dcfce7; color: #166534; }
-    .status-err { background: #fee2e2; color: #991b1b; }
+    .status-ok { background: var(--color-success-bg); color: var(--color-success); }
+    .status-err { background: var(--color-error-bg); color: var(--color-error); }
 
     .apidemo-clear {
       padding: 4px 12px;

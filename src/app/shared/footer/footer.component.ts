@@ -47,9 +47,10 @@ import { RouterLink } from '@angular/router';
     </footer>
   `,
   styles: [`
+    /* US-6001 técnica: consolida el contraste dark del footer público con tokens reutilizables del sistema global. */
     .footer {
       background: var(--color-dark);
-      color: #94a3b8;
+      color: var(--color-dark-muted);
       margin-top: auto;
     }
 
@@ -85,7 +86,7 @@ import { RouterLink } from '@angular/router';
       width: 32px;
       height: 32px;
       background: var(--color-primary);
-      color: #fff;
+      color: var(--color-bg);
       border-radius: var(--radius-md);
       font-size: 0.7rem;
       font-weight: 800;
@@ -93,14 +94,14 @@ import { RouterLink } from '@angular/router';
 
     .footer__logo strong {
       font-size: 1.125rem;
-      color: #ffffff;
+      color: var(--color-bg);
       font-weight: 700;
     }
 
     .footer__tagline {
       font-size: var(--font-size-sm);
       line-height: 1.6;
-      color: #94a3b8;
+      color: var(--color-dark-muted);
       max-width: 360px;
     }
 
@@ -109,7 +110,7 @@ import { RouterLink } from '@angular/router';
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #e2e8f0;
+      color: var(--color-dark-text);
       margin-bottom: 16px;
     }
 
@@ -122,28 +123,28 @@ import { RouterLink } from '@angular/router';
 
     .footer__nav a {
       font-size: var(--font-size-sm);
-      color: #94a3b8;
+      color: var(--color-dark-muted);
       text-decoration: none;
       transition: color var(--transition);
     }
 
     .footer__nav a:hover {
-      color: #ffffff;
+      color: var(--color-bg);
     }
 
     .footer__legal-col span {
       font-size: var(--font-size-sm);
-      color: #64748b;
+      color: var(--color-dark-subtle);
     }
 
     .footer__bottom {
-      border-top: 1px solid #1e293b;
+      border-top: 1px solid var(--color-dark-border);
       padding-block: 20px;
     }
 
     .footer__bottom p {
       font-size: var(--font-size-xs);
-      color: #475569;
+      color: var(--color-dark-subtle);
       text-align: center;
     }
   `]

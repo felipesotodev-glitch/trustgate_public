@@ -23,9 +23,9 @@ import { RouterLink } from '@angular/router';
         <div class="hero__visual" aria-hidden="true">
           <div class="hero__card">
             <div class="hero__card-header">
-              <span class="hero__card-dot" style="background:#ef4444"></span>
-              <span class="hero__card-dot" style="background:#f59e0b"></span>
-              <span class="hero__card-dot" style="background:#22c55e"></span>
+              <span class="hero__card-dot hero__card-dot--error"></span>
+              <span class="hero__card-dot hero__card-dot--warning"></span>
+              <span class="hero__card-dot hero__card-dot--success"></span>
             </div>
             <div class="hero__card-body">
               <div class="hero__consent-item">
@@ -104,9 +104,10 @@ import { RouterLink } from '@angular/router';
     </section>
   `,
   styles: [`
+    /* US-6101 técnica: estandariza hero y CTA de la landing pública eliminando hardcoded y estilos inline de color. */
     /* Hero */
     .hero {
-      background: linear-gradient(135deg, var(--color-primary-light) 0%, #ffffff 60%);
+      background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-bg) 60%);
     }
 
     .hero__inner {
@@ -165,7 +166,7 @@ import { RouterLink } from '@angular/router';
     }
 
     .hero__card {
-      background: #ffffff;
+      background: var(--color-bg);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-lg);
@@ -189,6 +190,10 @@ import { RouterLink } from '@angular/router';
       border-radius: 50%;
       display: block;
     }
+
+    .hero__card-dot--error { background: var(--color-error); }
+    .hero__card-dot--warning { background: var(--color-warning); }
+    .hero__card-dot--success { background: var(--color-success); }
 
     .hero__card-body {
       padding: 20px;
@@ -222,7 +227,7 @@ import { RouterLink } from '@angular/router';
     }
 
     .hero__consent-toggle.is-on {
-      background: #dcfce7;
+      background: var(--color-success-bg);
       color: var(--color-success);
     }
 
@@ -324,7 +329,7 @@ import { RouterLink } from '@angular/router';
       height: 48px;
       border-radius: 50%;
       background: var(--color-primary);
-      color: #ffffff;
+      color: var(--color-bg);
       font-size: var(--font-size-xl);
       font-weight: 800;
     }
@@ -353,7 +358,7 @@ import { RouterLink } from '@angular/router';
     }
 
     .cta-section h2 {
-      color: #ffffff;
+      color: var(--color-bg);
     }
 
     .cta-section p {
@@ -371,9 +376,9 @@ import { RouterLink } from '@angular/router';
     }
 
     .cta-section .btn-primary {
-      background: #ffffff;
+      background: var(--color-bg);
       color: var(--color-primary);
-      border-color: #ffffff;
+      border-color: var(--color-bg);
     }
 
     .cta-section .btn-primary:hover {
@@ -383,11 +388,11 @@ import { RouterLink } from '@angular/router';
 
     .cta-section .btn-outline {
       border-color: rgba(255,255,255,0.5);
-      color: #ffffff;
+      color: var(--color-bg);
     }
 
     .cta-section .btn-outline:hover {
-      border-color: #ffffff;
+      border-color: var(--color-bg);
       background: rgba(255,255,255,0.1);
     }
   `]

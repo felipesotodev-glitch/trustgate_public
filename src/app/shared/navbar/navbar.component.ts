@@ -53,11 +53,12 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     </header>
   `,
   styles: [`
+    /* US-5901 técnica: estandariza la barra pública con tokens para mantener coherencia visual en navegación desktop/mobile. */
     .navbar {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: #ffffff;
+      background: var(--color-bg);
       border-bottom: 1px solid var(--color-border);
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
@@ -85,7 +86,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       width: 36px;
       height: 36px;
       background: var(--color-primary);
-      color: #fff;
+      color: var(--color-bg);
       border-radius: var(--radius-md);
       font-size: 0.75rem;
       font-weight: 800;
@@ -151,7 +152,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       left: 0;
       right: 0;
       bottom: 0;
-      background: #ffffff;
+      background: var(--color-bg);
       border-top: 1px solid var(--color-border);
       padding: 24px var(--padding-x);
       display: flex;

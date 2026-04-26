@@ -187,6 +187,7 @@ import { RouterLink } from '@angular/router';
     </div>
   `,
   styles: [`
+    /* US-6202 técnica: estandariza los estados visuales de documentación (warning y métodos HTTP) con tokens institucionales. */
     .docs-layout {
       display: flex;
       min-height: 100vh;
@@ -271,13 +272,13 @@ import { RouterLink } from '@angular/router';
     }
 
     .docs-warning-box {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      border-left: 4px solid #f59e0b;
+      background: var(--color-warning-bg);
+      border: 1px solid var(--color-warning-border);
+      border-left: 4px solid var(--color-warning);
       padding: 16px 20px;
       border-radius: var(--radius-md);
       font-size: var(--font-size-sm);
-      color: #92400e;
+      color: var(--color-warning);
     }
 
     .method-badge {
@@ -289,11 +290,11 @@ import { RouterLink } from '@angular/router';
       letter-spacing: 0.05em;
     }
 
-    .method-get { background: #dcfce7; color: #166534; }
-    .method-post { background: #dbeafe; color: #1e40af; }
-    .method-delete { background: #fee2e2; color: #991b1b; }
-    .method-put { background: #fef9c3; color: #713f12; }
-    .method-patch { background: #ede9fe; color: #4c1d95; }
+    .method-get { background: var(--color-success-bg); color: var(--color-success); }
+    .method-post { background: var(--color-primary-light); color: var(--color-primary-dark); }
+    .method-delete { background: var(--color-error-bg); color: var(--color-error); }
+    .method-put { background: var(--color-warning-bg); color: var(--color-warning); }
+    .method-patch { background: var(--color-primary-light); color: var(--color-primary-dark); }
 
     .docs-footer-nav {
       padding-block: 40px;
