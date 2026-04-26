@@ -297,14 +297,14 @@ interface NavigatorWithUAData extends Navigator {
     :host {
       display: block;
       min-height: 100dvh;
-      color: #112031;
+      color: var(--color-brand-dark);
     }
 
     .authorization-shell {
       position: relative;
       min-height: 100dvh;
       padding: 32px 16px 56px;
-      background: radial-gradient(circle at top left, rgba(248, 197, 72, 0.22), transparent 28%), linear-gradient(180deg, #f7f2e8 0%, #f2f6fb 45%, #ffffff 100%);
+      background: var(--gradient-auth-bg);
     }
 
     .authorization-layout {
@@ -333,8 +333,8 @@ interface NavigatorWithUAData extends Navigator {
       display: inline-flex;
       padding: 6px 12px;
       border-radius: 999px;
-      background: #112031;
-      color: #f7f2e8;
+      background: var(--color-brand-dark);
+      color: var(--color-brand-cream);
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
@@ -351,7 +351,7 @@ interface NavigatorWithUAData extends Navigator {
       margin: 0;
       max-width: 760px;
       font-size: 1.05rem;
-      color: #3c5266;
+      color: var(--color-muted);
     }
 
     .content-grid {
@@ -381,8 +381,8 @@ interface NavigatorWithUAData extends Navigator {
       text-align: left;
       white-space: pre-wrap;
       word-break: break-word;
-      background: #0f172a;
-      color: #e2e8f0;
+      background: var(--color-dark);
+      color: var(--color-dark-text);
       border-radius: 16px;
       padding: 16px;
     }
@@ -393,7 +393,7 @@ interface NavigatorWithUAData extends Navigator {
 
     .state-card--success {
       border-color: rgba(20, 83, 45, 0.22);
-      background: linear-gradient(180deg, #f3fbf6, #ffffff);
+      background: var(--gradient-success-subtle);
     }
 
     .completion-header {
@@ -409,7 +409,7 @@ interface NavigatorWithUAData extends Navigator {
 
     .completion-header p {
       margin: 0;
-      color: #4b5f73;
+      color: var(--color-muted);
     }
 
     .completion-badge {
@@ -419,8 +419,8 @@ interface NavigatorWithUAData extends Navigator {
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: #16a34a;
-      color: #ffffff;
+      background: var(--color-success);
+      color: var(--color-bg);
       font-size: 1.4rem;
       font-weight: 700;
       flex-shrink: 0;
@@ -433,7 +433,7 @@ interface NavigatorWithUAData extends Navigator {
       margin: 0 0 22px;
       padding: 16px;
       border-radius: 14px;
-      background: #ffffff;
+      background: var(--color-bg);
       border: 1px solid rgba(15, 23, 42, 0.08);
     }
 
@@ -441,7 +441,7 @@ interface NavigatorWithUAData extends Navigator {
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #6b7280;
+      color: var(--color-muted);
       margin-bottom: 4px;
     }
 
@@ -466,7 +466,7 @@ interface NavigatorWithUAData extends Navigator {
     .completion-section h3 {
       margin: 0 0 10px;
       font-size: 0.95rem;
-      color: #0f172a;
+      color: var(--color-dark);
     }
 
     .completion-channels,
@@ -492,8 +492,8 @@ interface NavigatorWithUAData extends Navigator {
     .completion-channel {
       font-size: 0.82rem;
       font-weight: 600;
-      color: #166534;
-      background: #ffffff;
+      color: var(--color-success-text);
+      background: var(--color-bg);
       padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid rgba(22, 163, 74, 0.3);
@@ -513,13 +513,13 @@ interface NavigatorWithUAData extends Navigator {
       border: 1px solid rgba(15, 23, 42, 0.1);
       border-radius: 12px;
       padding: 10px 14px;
-      background: #ffffff;
+      background: var(--color-bg);
     }
 
     .completion-audit summary {
       cursor: pointer;
       font-weight: 600;
-      color: #1e293b;
+      color: var(--color-text);
       list-style: none;
     }
 
@@ -540,8 +540,8 @@ interface NavigatorWithUAData extends Navigator {
     .completion-audit pre {
       margin: 12px 0 0;
       padding: 12px;
-      background: #0f172a;
-      color: #e2e8f0;
+      background: var(--color-dark);
+      color: var(--color-dark-text);
       border-radius: 10px;
       overflow-x: auto;
       font-size: 0.78rem;
@@ -563,7 +563,7 @@ interface NavigatorWithUAData extends Navigator {
       font-size: 0.78rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #6b7280;
+      color: var(--color-muted);
       margin-bottom: 4px;
     }
 
@@ -576,7 +576,7 @@ interface NavigatorWithUAData extends Navigator {
       margin: 18px 0;
       padding: 16px;
       border-radius: 18px;
-      background: linear-gradient(180deg, #fff8e8, #fffdf8);
+      background: var(--gradient-identity-bg);
       border: 1px solid rgba(180, 138, 28, 0.24);
       display: flex;
       flex-direction: column;
@@ -594,7 +594,7 @@ interface NavigatorWithUAData extends Navigator {
     .purpose-header p,
     .channel-card__content p,
     .submit-message {
-      color: #4b5f73;
+      color: var(--color-muted);
     }
 
     .form-field {
@@ -611,10 +611,10 @@ interface NavigatorWithUAData extends Navigator {
     .form-control {
       min-height: 48px;
       border-radius: 14px;
-      border: 1px solid #cfd8e3;
+      border: 1px solid var(--color-border);
       padding: 0 14px;
       font: inherit;
-      background: #fff;
+      background: var(--color-bg);
     }
 
     .purpose-card {
@@ -641,8 +641,8 @@ interface NavigatorWithUAData extends Navigator {
 
     .purpose-legal {
       align-self: flex-start;
-      background: #112031;
-      color: #fff;
+      background: var(--color-brand-dark);
+      color: var(--color-bg);
       padding: 4px 10px;
       border-radius: 999px;
       font-size: 0.76rem;
@@ -661,11 +661,11 @@ interface NavigatorWithUAData extends Navigator {
       padding: 14px;
       border-radius: 18px;
       border: 1px solid rgba(17, 32, 49, 0.12);
-      background: #fbfdff;
+      background: var(--color-bg);
     }
 
     .channel-card--active {
-      background: #f0fdf4;
+      background: var(--color-success-bg);
       border-color: rgba(22, 101, 52, 0.2);
     }
 
@@ -682,14 +682,14 @@ interface NavigatorWithUAData extends Navigator {
 
     .channel-card__top span,
     .channel-card__content small {
-      color: #64748b;
+      color: var(--color-muted);
     }
 
     .notice-box {
       margin: 10px 0;
       padding: 12px 14px;
       border-radius: 14px;
-      background: #f8fafc;
+      background: var(--color-bg-alt);
       border: 1px solid rgba(17, 32, 49, 0.08);
       font-size: 0.94rem;
       line-height: 1.5;
@@ -698,7 +698,7 @@ interface NavigatorWithUAData extends Navigator {
     .channel-card__state {
       display: inline-flex;
       margin-top: 8px;
-      color: #166534;
+      color: var(--color-success-text);
       font-weight: 700;
     }
 
@@ -709,8 +709,8 @@ interface NavigatorWithUAData extends Navigator {
       margin-top: 22px;
       padding: 16px;
       border-radius: 18px;
-      background: #112031;
-      color: #f8fafc;
+      background: var(--color-brand-dark);
+      color: var(--color-bg-alt);
     }
 
     .acceptance-box span {
@@ -734,13 +734,13 @@ interface NavigatorWithUAData extends Navigator {
     }
 
     .btn-primary {
-      background: #112031;
-      color: #fff;
+      background: var(--color-brand-dark);
+      color: var(--color-bg);
     }
 
     .btn-outline {
-      background: #fff;
-      color: #112031;
+      background: var(--color-bg);
+      color: var(--color-brand-dark);
       border: 1px solid rgba(17, 32, 49, 0.14);
     }
 
@@ -750,7 +750,7 @@ interface NavigatorWithUAData extends Navigator {
     }
 
     .submit-message--error {
-      color: #b91c1c;
+      color: var(--color-error);
     }
   `]
 })

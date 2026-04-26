@@ -452,7 +452,7 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
 
     .entry-granted { border-left-color: var(--color-success); }
     .entry-revoked { border-left-color: var(--color-error); }
-    .entry-error   { border-left-color: #f59e0b; }
+    .entry-error   { border-left-color: var(--color-warning); }
     .entry-info    { border-left-color: var(--color-primary); }
 
     .entry-time {
@@ -471,9 +471,9 @@ const WIDGET_ASSET_VERSION = '2026-04-20-02';
       color: var(--color-text);
     }
 
-    .entry-badge--granted { background: #dcfce7; color: #166534; }
-    .entry-badge--revoked { background: #fee2e2; color: #991b1b; }
-    .entry-badge--error   { background: #fef9c3; color: #713f12; }
+    .entry-badge--granted { background: var(--color-success-bg); color: var(--color-success-text); }
+    .entry-badge--revoked { background: var(--color-error-bg); color: var(--color-error-text); }
+    .entry-badge--error   { background: var(--color-warning-bg); color: var(--color-warning-text); }
     .entry-badge--info    { background: var(--color-primary-light); color: var(--color-primary-dark); }
 
     .entry-data {

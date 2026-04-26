@@ -21,12 +21,20 @@
   --color-success: #16a34a;
   --color-success-bg: #dcfce7;
   --color-success-border: #86efac;
+  --color-success-text: #166534;
   --color-warning: #d97706;
   --color-warning-bg: #fffbeb;
   --color-warning-border: #fde68a;
+  --color-warning-text: #713f12;
   --color-error: #dc2626;
   --color-error-bg: #fee2e2;
   --color-error-border: #fecaca;
+  --color-error-text: #991b1b;
+  --color-brand-dark: #112031;
+  --color-brand-cream: #f7f2e8;
+  --gradient-auth-bg: radial-gradient(circle at top left, rgba(248, 197, 72, 0.22), transparent 28%), linear-gradient(180deg, #f7f2e8 0%, #f2f6fb 45%, #ffffff 100%);
+  --gradient-success-subtle: linear-gradient(180deg, #f3fbf6, #ffffff);
+  --gradient-identity-bg: linear-gradient(180deg, #fff8e8, #fffdf8);
 
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
   --font-size-xs: 0.75rem;

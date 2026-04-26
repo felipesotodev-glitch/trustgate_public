@@ -117,7 +117,7 @@ import { RouterLink } from '@angular/router';
       height: 40px;
       border-radius: 50%;
       background: var(--color-primary);
-      color: #fff;
+      color: var(--color-bg);
       font-weight: 800;
       font-size: var(--font-size-base);
       flex-shrink: 0;

@@ -383,8 +383,8 @@ interface EventLogEntry {
       background: var(--color-border);
       color: var(--color-text);
     }
-    .entry-badge--success { background: #dcfce7; color: #166534; }
-    .entry-badge--error { background: #fee2e2; color: #991b1b; }
+    .entry-badge--success { background: var(--color-success-bg); color: var(--color-success-text); }
+    .entry-badge--error { background: var(--color-error-bg); color: var(--color-error-text); }
     .entry-badge--info { background: var(--color-primary-light); color: var(--color-primary-dark); }
     .entry-data {
       background: transparent;
