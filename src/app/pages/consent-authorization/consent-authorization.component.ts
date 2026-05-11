@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+﻿import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -318,11 +318,11 @@ interface NavigatorWithUAData extends Navigator {
 
     .hero-card,
     .content-card {
-      background: rgba(255, 255, 255, 0.9);
+      background: hsl(0 0% 100% / 0.9);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(17, 32, 49, 0.1);
+      border: 1px solid hsl(212 48% 13% / 0.1);
       border-radius: 28px;
-      box-shadow: 0 20px 60px rgba(17, 32, 49, 0.08);
+      box-shadow: 0 20px 60px hsl(212 48% 13% / 0.08);
     }
 
     .hero-card {
@@ -388,11 +388,11 @@ interface NavigatorWithUAData extends Navigator {
     }
 
     .state-card--error {
-      border-color: rgba(185, 28, 28, 0.22);
+      border-color: hsl(0 74% 42% / 0.22);
     }
 
     .state-card--success {
-      border-color: rgba(20, 83, 45, 0.22);
+      border-color: hsl(144 61% 20% / 0.22);
       background: var(--gradient-success-subtle);
     }
 
@@ -434,7 +434,7 @@ interface NavigatorWithUAData extends Navigator {
       padding: 16px;
       border-radius: 14px;
       background: var(--color-bg);
-      border: 1px solid rgba(15, 23, 42, 0.08);
+      border: 1px solid hsl(222 47% 11% / 0.08);
     }
 
     .completion-summary dt {
@@ -454,7 +454,7 @@ interface NavigatorWithUAData extends Navigator {
     .completion-summary code {
       font-family: 'SFMono-Regular', Menlo, monospace;
       font-size: 0.85rem;
-      background: rgba(15, 23, 42, 0.06);
+      background: hsl(222 47% 11% / 0.06);
       padding: 2px 6px;
       border-radius: 6px;
     }
@@ -485,8 +485,8 @@ interface NavigatorWithUAData extends Navigator {
       gap: 12px;
       padding: 10px 14px;
       border-radius: 12px;
-      background: rgba(22, 163, 74, 0.08);
-      border: 1px solid rgba(22, 163, 74, 0.18);
+      background: hsl(142 76% 36% / 0.08);
+      border: 1px solid hsl(142 76% 36% / 0.18);
     }
 
     .completion-channel {
@@ -496,13 +496,13 @@ interface NavigatorWithUAData extends Navigator {
       background: var(--color-bg);
       padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(22, 163, 74, 0.3);
+      border: 1px solid hsl(142 76% 36% / 0.3);
     }
 
     .completion-consent-ids li {
       padding: 8px 12px;
       border-radius: 10px;
-      background: rgba(15, 23, 42, 0.04);
+      background: hsl(222 47% 11% / 0.04);
       font-family: 'SFMono-Regular', Menlo, monospace;
       font-size: 0.82rem;
       word-break: break-all;
@@ -510,7 +510,7 @@ interface NavigatorWithUAData extends Navigator {
 
     .completion-audit {
       margin-top: 12px;
-      border: 1px solid rgba(15, 23, 42, 0.1);
+      border: 1px solid hsl(222 47% 11% / 0.1);
       border-radius: 12px;
       padding: 10px 14px;
       background: var(--color-bg);
@@ -577,7 +577,7 @@ interface NavigatorWithUAData extends Navigator {
       padding: 16px;
       border-radius: 18px;
       background: var(--gradient-identity-bg);
-      border: 1px solid rgba(180, 138, 28, 0.24);
+      border: 1px solid hsl(43 73% 41% / 0.24);
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -618,7 +618,7 @@ interface NavigatorWithUAData extends Navigator {
     }
 
     .purpose-card {
-      border-top: 1px solid rgba(17, 32, 49, 0.08);
+      border-top: 1px solid hsl(212 48% 13% / 0.08);
       padding-top: 18px;
       margin-top: 18px;
     }
@@ -660,13 +660,13 @@ interface NavigatorWithUAData extends Navigator {
       align-items: start;
       padding: 14px;
       border-radius: 18px;
-      border: 1px solid rgba(17, 32, 49, 0.12);
+      border: 1px solid hsl(212 48% 13% / 0.12);
       background: var(--color-bg);
     }
 
     .channel-card--active {
       background: var(--color-success-bg);
-      border-color: rgba(22, 101, 52, 0.2);
+      border-color: hsl(143 64% 24% / 0.2);
     }
 
     .channel-card input {
@@ -690,7 +690,7 @@ interface NavigatorWithUAData extends Navigator {
       padding: 12px 14px;
       border-radius: 14px;
       background: var(--color-bg-alt);
-      border: 1px solid rgba(17, 32, 49, 0.08);
+      border: 1px solid hsl(212 48% 13% / 0.08);
       font-size: 0.94rem;
       line-height: 1.5;
     }
@@ -741,7 +741,7 @@ interface NavigatorWithUAData extends Navigator {
     .btn-outline {
       background: var(--color-bg);
       color: var(--color-brand-dark);
-      border: 1px solid rgba(17, 32, 49, 0.14);
+      border: 1px solid hsl(212 48% 13% / 0.14);
     }
 
     .submit-message {

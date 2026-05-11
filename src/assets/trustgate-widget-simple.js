@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const config = window.TrustGateSimpleConfig || {};
 
   class TrustGateSimpleWidget {
@@ -6,7 +6,7 @@
       // Primero definir el locale y theme
       const locale = widgetConfig.locale || 'es';
       const theme = {
-        primaryColor: widgetConfig.theme?.primaryColor || '#0b5fff',
+        primaryColor: widgetConfig.theme?.primaryColor || 'hsl(219 100% 52%)',
         borderRadius: widgetConfig.theme?.borderRadius || '12px',
         fontFamily: widgetConfig.theme?.fontFamily || 'Inter, system-ui, sans-serif'
       };
@@ -40,7 +40,7 @@
         errors: {},
         successMessage: '',
         errorMessage: '',
-        selectedChannels: [], // Vacío por defecto
+        selectedChannels: [], // VacÃ­o por defecto
         showConsentModal: false
       };
       
@@ -54,18 +54,18 @@
       const translations = {
         es: {
           title: 'Completa los datos y sigamos conectados',
-          subtitle: 'Actualiza tus datos de contacto para recibir información importante.',
+          subtitle: 'Actualiza tus datos de contacto para recibir informaciÃ³n importante.',
           nameLabel: 'Nombre completo',
           namePlaceholder: 'Ingresa tu nombre',
-          phoneLabel: 'Teléfono',
-          phonePlaceholder: 'Ingresa tu número',
-          emailLabel: 'Correo electrónico',
+          phoneLabel: 'TelÃ©fono',
+          phonePlaceholder: 'Ingresa tu nÃºmero',
+          emailLabel: 'Correo electrÃ³nico',
           emailPlaceholder: 'Ingresa tu correo',
           policyLabel: 'Acepto la',
-          policyLinkText: 'Política de privacidad de datos',
+          policyLinkText: 'PolÃ­tica de privacidad de datos',
           policyRequired: '*',
           marketingLabel: 'Acepto recibir comunicaciones comerciales.',
-          marketingLink: 'Conocer más',
+          marketingLink: 'Conocer mÃ¡s',
           submitButton: 'Actualizar datos',
           submitting: 'Actualizando...',
           closeButton: 'Cerrar',
@@ -73,11 +73,11 @@
           consentModalChannels: 'Canales disponibles:',
           consentModalConfirm: 'Confirmar mis preferencias',
           consentModalContinueWithout: 'Continuar sin aceptar',
-          successMessage: '¡Datos actualizados correctamente!',
+          successMessage: 'Â¡Datos actualizados correctamente!',
           errorRequired: 'Este campo es obligatorio',
-          errorEmail: 'Ingresa un correo válido',
-          errorPhone: 'Ingresa un número de teléfono válido',
-          errorPolicy: 'Debes aceptar la política de privacidad'
+          errorEmail: 'Ingresa un correo vÃ¡lido',
+          errorPhone: 'Ingresa un nÃºmero de telÃ©fono vÃ¡lido',
+          errorPolicy: 'Debes aceptar la polÃ­tica de privacidad'
         },
         en: {
           title: 'Complete your data and let\'s stay connected',
@@ -117,13 +117,13 @@
           finalidad: {
             id: 1,
             nombre: 'Marketing y Comunicaciones Comerciales',
-            descripcion: 'Envío de ofertas, promociones, novedades de productos y servicios, encuestas de satisfacción e información relevante sobre nuestros servicios.'
+            descripcion: 'EnvÃ­o de ofertas, promociones, novedades de productos y servicios, encuestas de satisfacciÃ³n e informaciÃ³n relevante sobre nuestros servicios.'
           },
           canales: [
-            { id: 1, nombre: 'WhatsApp', icono: '📱', descripcion: 'Mensajes a través de WhatsApp' },
-            { id: 3, nombre: 'Email', icono: '📧', descripcion: 'Correos electrónicos' },
-            { id: 5, nombre: 'SMS', icono: '💬', descripcion: 'Mensajes de texto SMS' },
-            { id: 7, nombre: 'Llamada telefónica', icono: '☎️', descripcion: 'Llamadas telefónicas' }
+            { id: 1, nombre: 'WhatsApp', icono: 'ðŸ“±', descripcion: 'Mensajes a travÃ©s de WhatsApp' },
+            { id: 3, nombre: 'Email', icono: 'ðŸ“§', descripcion: 'Correos electrÃ³nicos' },
+            { id: 5, nombre: 'SMS', icono: 'ðŸ’¬', descripcion: 'Mensajes de texto SMS' },
+            { id: 7, nombre: 'Llamada telefÃ³nica', icono: 'â˜Žï¸', descripcion: 'Llamadas telefÃ³nicas' }
           ]
         },
         en: {
@@ -133,10 +133,10 @@
             descripcion: 'Sending offers, promotions, product and service updates, satisfaction surveys, and relevant information about our services.'
           },
           canales: [
-            { id: 1, nombre: 'WhatsApp', icono: '📱', descripcion: 'Messages via WhatsApp' },
-            { id: 3, nombre: 'Email', icono: '📧', descripcion: 'Email messages' },
-            { id: 5, nombre: 'SMS', icono: '💬', descripcion: 'SMS text messages' },
-            { id: 7, nombre: 'Phone call', icono: '☎️', descripcion: 'Telephone calls' }
+            { id: 1, nombre: 'WhatsApp', icono: 'ðŸ“±', descripcion: 'Messages via WhatsApp' },
+            { id: 3, nombre: 'Email', icono: 'ðŸ“§', descripcion: 'Email messages' },
+            { id: 5, nombre: 'SMS', icono: 'ðŸ’¬', descripcion: 'SMS text messages' },
+            { id: 7, nombre: 'Phone call', icono: 'â˜Žï¸', descripcion: 'Telephone calls' }
           ]
         }
       };
@@ -177,7 +177,7 @@
         }
 
         if (!selectedPurpose && purposes.length > 0) {
-          // Si no se especificó o no se encontró, usar la primera
+          // Si no se especificÃ³ o no se encontrÃ³, usar la primera
           selectedPurpose = purposes[0];
         }
 
@@ -207,7 +207,7 @@
             id: c.id,
             nombre: c.nombre,
             icono: this.getChannelIcon(c.codigo),
-            descripcion: `Mensajes vía ${c.nombre}`
+            descripcion: `Mensajes vÃ­a ${c.nombre}`
           }))
         };
       } catch (error) {
@@ -218,15 +218,15 @@
 
     getChannelIcon(codigo) {
       const icons = {
-        'whatsapp': '📱',
-        'email': '📧',
-        'sms': '💬',
-        'messenger': '💬',
-        'telegram': '✈️',
-        'instagram': '📷',
-        'web': '🌐'
+        'whatsapp': 'ðŸ“±',
+        'email': 'ðŸ“§',
+        'sms': 'ðŸ’¬',
+        'messenger': 'ðŸ’¬',
+        'telegram': 'âœˆï¸',
+        'instagram': 'ðŸ“·',
+        'web': 'ðŸŒ'
       };
-      return icons[codigo.toLowerCase()] || '📞';
+      return icons[codigo.toLowerCase()] || 'ðŸ“ž';
     }
 
     async init() {
@@ -248,7 +248,7 @@
         throw new Error('apiUrl es obligatorio para inicializar el widget.');
       }
       if (this.config.mode === 'inline' && !this.resolveInlineTarget()) {
-        throw new Error('No se encontró el contenedor inline indicado por targetId.');
+        throw new Error('No se encontrÃ³ el contenedor inline indicado por targetId.');
       }
     }
 
@@ -333,7 +333,7 @@
           }
         );
         
-        // 2. Si aceptó marketing, otorgar consentimiento
+        // 2. Si aceptÃ³ marketing, otorgar consentimiento
         if (this.state.formData.acceptMarketing && this.state.selectedChannels.length > 0) {
           await this.fetchJson(
             `${this.config.apiUrl}/api/v1/public/consent/grant`,
@@ -435,7 +435,7 @@
       } catch (error) {
         clearTimeout(timeoutId);
         if (error.name === 'AbortError') {
-          throw new Error('La solicitud excedió el tiempo de espera');
+          throw new Error('La solicitud excediÃ³ el tiempo de espera');
         }
         throw error;
       }
@@ -537,7 +537,7 @@
         this.state.selectedChannels = this.state.selectedChannels.filter(id => id !== channelId);
       }
       
-      // Sincronización bidireccional con checkbox de marketing
+      // SincronizaciÃ³n bidireccional con checkbox de marketing
       const marketingCheckbox = this.shadow.querySelector('input[data-field="acceptMarketing"]');
       
       if (this.state.selectedChannels.length === 0) {
@@ -565,7 +565,7 @@
         checkbox.checked = this.state.selectedChannels.includes(channelId);
       });
       
-      // Actualizar estado del botón confirmar
+      // Actualizar estado del botÃ³n confirmar
       const confirmButton = this.shadow.querySelector('[data-action="confirm"]');
       if (confirmButton) {
         confirmButton.disabled = this.state.selectedChannels.length === 0;
@@ -900,14 +900,14 @@
         .tgs-inline,
         .tgs-modal {
           font-family: ${this.config.theme.fontFamily};
-          color: #1a1a1a;
+          color: hsl(0 0% 10%);
           line-height: 1.5;
         }
         
         .tgs-modal {
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.5);
+          background: hsl(0 0% 0%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -917,16 +917,16 @@
         
         .tgs-card {
           position: relative;
-          background: #ffffff;
+          background: hsl(0 0% 100%);
           border-radius: ${this.config.theme.borderRadius};
           padding: 32px;
           max-width: 500px;
           width: 100%;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 10px 40px hsl(0 0% 0%);
         }
         
         .tgs-modal .tgs-card {
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 20px 60px hsl(0 0% 0%);
         }
         
         .tgs-close-button {
@@ -937,7 +937,7 @@
           border: none;
           font-size: 32px;
           line-height: 1;
-          color: #666666;
+          color: hsl(0 0% 40%);
           cursor: pointer;
           padding: 0;
           width: 32px;
@@ -950,8 +950,8 @@
         }
         
         .tgs-close-button:hover {
-          color: #1a1a1a;
-          background: #f5f5f5;
+          color: hsl(0 0% 10%);
+          background: hsl(0 0% 96%);
         }
         
         .tgs-close-button:focus {
@@ -968,14 +968,14 @@
           margin: 0 0 8px 0;
           font-size: 24px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: hsl(0 0% 10%);
           line-height: 1.3;
         }
         
         .tgs-subtitle {
           margin: 0;
           font-size: 15px;
-          color: #666666;
+          color: hsl(0 0% 40%);
           line-height: 1.5;
         }
         
@@ -994,19 +994,19 @@
         .tgs-label {
           font-size: 14px;
           font-weight: 600;
-          color: #333333;
+          color: hsl(0 0% 20%);
         }
         
         .tgs-input {
           width: 100%;
           padding: 12px 16px;
-          border: 2px solid #e0e0e0;
+          border: 2px solid hsl(0 0% 88%);
           border-radius: 8px;
           font-size: 15px;
           font-family: inherit;
-          color: #1a1a1a;
+          color: hsl(0 0% 10%);
           transition: all 0.2s ease;
-          background: #ffffff;
+          background: hsl(0 0% 100%);
         }
         
         .tgs-input:focus {
@@ -1016,26 +1016,26 @@
         }
         
         .tgs-input:disabled {
-          background: #f5f5f5;
+          background: hsl(0 0% 96%);
           cursor: not-allowed;
           opacity: 0.6;
         }
         
         .tgs-input::placeholder {
-          color: #999999;
+          color: hsl(0 0% 60%);
         }
         
         .tgs-form-group--error .tgs-input {
-          border-color: #dc2626;
+          border-color: hsl(0 72% 51%);
         }
         
         .tgs-form-group--error .tgs-input:focus {
-          box-shadow: 0 0 0 3px #dc262622;
+          box-shadow: 0 0 0 3px hsl(0 72% 51%);
         }
         
         .tgs-error-text {
           font-size: 13px;
-          color: #dc2626;
+          color: hsl(0 72% 51%);
           margin-top: -4px;
         }
         
@@ -1056,13 +1056,13 @@
         .tgs-checkbox {
           width: 20px;
           height: 20px;
-          border: 2px solid #e0e0e0;
+          border: 2px solid hsl(0 0% 88%);
           border-radius: 4px;
           cursor: pointer;
           flex-shrink: 0;
           margin-top: 2px;
           appearance: none;
-          background: #ffffff;
+          background: hsl(0 0% 100%);
           transition: all 0.2s ease;
         }
         
@@ -1087,7 +1087,7 @@
         
         .tgs-checkbox-text {
           font-size: 14px;
-          color: #333333;
+          color: hsl(0 0% 20%);
           line-height: 1.5;
         }
         
@@ -1110,19 +1110,19 @@
         }
         
         .tgs-required {
-          color: #dc2626;
+          color: hsl(0 72% 51%);
           font-weight: 700;
         }
         
         .tgs-checkbox-group--error .tgs-checkbox {
-          border-color: #dc2626;
+          border-color: hsl(0 72% 51%);
         }
         
         .tgs-submit-button {
           width: 100%;
           padding: 14px 24px;
           background: ${this.config.theme.primaryColor};
-          color: #ffffff;
+          color: hsl(0 0% 100%);
           border: none;
           border-radius: 8px;
           font-size: 16px;
@@ -1155,15 +1155,15 @@
         }
         
         .tgs-alert--success {
-          background: #dcfce7;
-          color: #166534;
-          border: 1px solid #bbf7d0;
+          background: hsl(141 84% 93%);
+          color: hsl(143 64% 24%);
+          border: 1px solid hsl(141 79% 85%);
         }
         
         .tgs-alert--error {
-          background: #fee2e2;
-          color: #991b1b;
-          border: 1px solid #fecaca;
+          background: hsl(0 93% 94%);
+          color: hsl(0 70% 35%);
+          border: 1px solid hsl(0 96% 89%);
         }
         
         @media (max-width: 640px) {
@@ -1184,7 +1184,7 @@
         .tgs-consent-modal-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.5);
+          background: hsl(0 0% 0%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -1203,9 +1203,9 @@
         }
         
         .tgs-consent-modal {
-          background: #ffffff;
+          background: hsl(0 0% 100%);
           border-radius: ${this.config.theme.borderRadius};
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+          box-shadow: 0 20px 60px hsl(0 0% 0%);
           max-width: 500px;
           width: 100%;
           max-height: 80vh;
@@ -1228,7 +1228,7 @@
         
         .tgs-consent-modal-header {
           padding: 20px 24px;
-          border-bottom: 1px solid #e5e5e5;
+          border-bottom: 1px solid hsl(0 0% 90%);
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -1239,7 +1239,7 @@
           margin: 0;
           font-size: 18px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: hsl(0 0% 10%);
           flex: 1;
         }
         
@@ -1248,7 +1248,7 @@
           border: none;
           font-size: 28px;
           line-height: 1;
-          color: #666666;
+          color: hsl(0 0% 40%);
           cursor: pointer;
           padding: 0;
           width: 28px;
@@ -1262,8 +1262,8 @@
         }
         
         .tgs-consent-modal-close:hover {
-          color: #1a1a1a;
-          background: #f5f5f5;
+          color: hsl(0 0% 10%);
+          background: hsl(0 0% 96%);
         }
         
         .tgs-consent-modal-close:focus {
@@ -1285,13 +1285,13 @@
           margin: 0 0 8px 0;
           font-size: 16px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: hsl(0 0% 10%);
         }
         
         .tgs-consent-finalidad-desc {
           margin: 0;
           font-size: 14px;
-          color: #666666;
+          color: hsl(0 0% 40%);
           line-height: 1.6;
         }
         
@@ -1299,7 +1299,7 @@
           margin: 0 0 16px 0;
           font-size: 16px;
           font-weight: 700;
-          color: #1a1a1a;
+          color: hsl(0 0% 10%);
         }
         
         .tgs-consent-canales-list {
@@ -1312,7 +1312,7 @@
           display: flex;
           gap: 12px;
           padding: 12px;
-          border: 1px solid #e5e5e5;
+          border: 1px solid hsl(0 0% 90%);
           border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -1320,13 +1320,13 @@
         
         .tgs-consent-canal-item:hover {
           border-color: ${this.config.theme.primaryColor};
-          background: #f9fafb;
+          background: hsl(210 20% 98%);
         }
         
         .tgs-consent-channel-checkbox {
           width: 20px;
           height: 20px;
-          border: 2px solid #d1d5db;
+          border: 2px solid hsl(216 12% 84%);
           border-radius: 4px;
           cursor: pointer;
           flex-shrink: 0;
@@ -1353,19 +1353,19 @@
         .tgs-consent-canal-name {
           font-size: 15px;
           font-weight: 600;
-          color: #1a1a1a;
+          color: hsl(0 0% 10%);
         }
         
         .tgs-consent-canal-desc {
           margin: 0;
           font-size: 13px;
-          color: #666666;
+          color: hsl(0 0% 40%);
           line-height: 1.5;
         }
         
         .tgs-consent-modal-footer {
           padding: 20px 24px;
-          border-top: 1px solid #e5e5e5;
+          border-top: 1px solid hsl(0 0% 90%);
           display: flex;
           flex-direction: column;
           gap: 12px;
@@ -1386,13 +1386,13 @@
         
         .tgs-consent-button-primary {
           background: ${this.config.theme.primaryColor};
-          color: #ffffff;
+          color: hsl(0 0% 100%);
         }
         
         .tgs-consent-button-primary:hover {
           opacity: 0.9;
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(11, 95, 255, 0.3);
+          box-shadow: 0 4px 12px hsl(219 100% 52%);
         }
         
         .tgs-consent-button-primary:active {
@@ -1405,8 +1405,8 @@
         }
         
         .tgs-consent-button-primary:disabled {
-          background: #e5e7eb;
-          color: #9ca3af;
+          background: hsl(220 13% 91%);
+          color: hsl(218 11% 65%);
           cursor: not-allowed;
           opacity: 0.6;
           transform: none;
@@ -1421,18 +1421,18 @@
         
         .tgs-consent-button-secondary {
           background: transparent;
-          color: #666666;
-          border: 1px solid #d1d5db;
+          color: hsl(0 0% 40%);
+          border: 1px solid hsl(216 12% 84%);
         }
         
         .tgs-consent-button-secondary:hover {
-          background: #f9fafb;
-          border-color: #9ca3af;
-          color: #1a1a1a;
+          background: hsl(210 20% 98%);
+          border-color: hsl(218 11% 65%);
+          color: hsl(0 0% 10%);
         }
         
         .tgs-consent-button-secondary:active {
-          background: #f3f4f6;
+          background: hsl(220 14% 96%);
         }
         
         .tgs-consent-button-secondary:focus {
@@ -1510,7 +1510,7 @@
 
   window.TrustGateSimpleWidget = TrustGateSimpleWidget;
 
-  // Auto-init solo si está habilitado Y hay configuración válida
+  // Auto-init solo si estÃ¡ habilitado Y hay configuraciÃ³n vÃ¡lida
   if (config.autoInit !== false && config.clientKey) {
     document.addEventListener('DOMContentLoaded', () => {
       const widget = new TrustGateSimpleWidget(config);
@@ -1518,3 +1518,4 @@
     });
   }
 })();
+
