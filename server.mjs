@@ -101,6 +101,12 @@ async function proxyRequest(req, res, pathname, search) {
   headers.delete('connection');
   headers.delete('origin');
 
+  // Proxy injection: inyecta x-client-key desde env var DEMO_CLIENT_KEY.
+  // La clave nunca viaja en el bundle Angular compilado; solo existe en Railway env vars.
+  if (DEMO_CLIENT_KEY) {
+    headers.set('x-client-key', DEMO_CLIENT_KEY);
+  }
+
   const hasBody = !['GET', 'HEAD'].includes(req.method ?? 'GET');
   const response = await fetch(upstreamUrl, {
     method: req.method,
@@ -147,6 +153,10 @@ async function fetchUpstreamJson(req, pathname, search) {
   headers.delete('expect');
   headers.delete('connection');
   headers.delete('origin');
+
+  if (DEMO_CLIENT_KEY) {
+    headers.set('x-client-key', DEMO_CLIENT_KEY);
+  }
 
   const response = await fetch(upstreamUrl, {
     method: req.method,
@@ -224,7 +234,8 @@ const server = createServer(async (req, res) => {
     createReadStream(filePath).pipe(res);
   } catch (error) {
     console.error('TrustGate Public server error:', error);
-    sendJson(res, 502, { error: 'server_error', message: 'No fue posible atender la solicitud.' });
+    const detail = error instanceof Error ? error.message : String(error);
+    sendJson(res, 502, { error: 'server_error', message: 'No fue posible atender la solicitud.', detail });
   }
 });
 
