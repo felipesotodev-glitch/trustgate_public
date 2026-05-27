@@ -220,14 +220,6 @@ interface NavigatorWithUAData extends Navigator {
                 </button>
                 <small>{{ deviceValidationHint() }}</small>
               </div>
-
-              @if (authorizationInfo()!.requiresRut) {
-                <label class="form-field">
-                  <span>RUT del titular</span>
-                  <input type="text" class="form-control" [(ngModel)]="rut" name="rut" placeholder="12.345.678-9" />
-                  <small>Se solicita solo porque tu ficha aún no tiene RUT protegido en la base de clientes.</small>
-                </label>
-              }
             </section>
 
             <section class="content-card form-card">
@@ -771,7 +763,6 @@ export class ConsentAuthorizationComponent implements OnInit {
   readonly completedChannels = signal<Array<{ key: string; purposeName: string; channelName: string }>>([]);
 
   token = '';
-  rut = '';
   acceptedNotice = false;
   private readonly selectedChannels = new Map<number, Set<number>>();
   private noticeDisplayedAt = new Date().toISOString();
@@ -894,12 +885,6 @@ export class ConsentAuthorizationComponent implements OnInit {
       return;
     }
 
-    if (this.authorizationInfo()?.requiresRut && !this.rut.trim()) {
-      this.submitError.set(true);
-      this.submitMessage.set('Debes ingresar el RUT porque esta ficha todavía no lo tiene trazado.');
-      return;
-    }
-
     this.submitting.set(true);
     try {
       const deviceFingerprint = await this.collectDeviceFingerprint();
@@ -933,7 +918,6 @@ export class ConsentAuthorizationComponent implements OnInit {
           'X-Client-Collected-At': deviceFingerprint.collectedAt
         },
         body: JSON.stringify({
-          rut: this.rut.trim() || null,
           purposes,
           acceptedNotice: this.acceptedNotice,
           acceptanceAction: this.deviceValidated() ? 'secure_link_biometric_acceptance' : 'secure_link_explicit_acceptance',
