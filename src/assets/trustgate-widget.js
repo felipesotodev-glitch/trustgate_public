@@ -7,6 +7,8 @@
       this.config = {
         clientKey: typeof widgetConfig.clientKey === 'string' ? widgetConfig.clientKey.trim() : '',
         identifier: typeof widgetConfig.identifier === 'string' ? widgetConfig.identifier.trim() : '',
+        email: typeof widgetConfig.email === 'string' ? widgetConfig.email.trim() : '',
+        rut: typeof widgetConfig.rut === 'string' ? widgetConfig.rut.trim() : '',
         mode: allowedModes.has(widgetConfig.mode) ? widgetConfig.mode : 'banner',
         targetId: widgetConfig.targetId,
         statusEndpoint: typeof widgetConfig.statusEndpoint === 'string' ? widgetConfig.statusEndpoint.trim() : '',
@@ -358,15 +360,23 @@
 
     resolveIdentifierFields(identifier) {
       const normalized = String(identifier || '').trim();
-      if (!normalized) {
-        return { email: null, rut: null };
+      const explicitEmail = String(this.config.email || '').trim();
+      const explicitRut = String(this.config.rut || '').trim();
+
+      let inferredEmail = null;
+      let inferredRut = null;
+      if (normalized) {
+        if (normalized.includes('@')) {
+          inferredEmail = normalized;
+        } else {
+          inferredRut = normalized;
+        }
       }
 
-      if (normalized.includes('@')) {
-        return { email: normalized, rut: null };
-      }
-
-      return { email: null, rut: normalized };
+      return {
+        email: explicitEmail || inferredEmail,
+        rut: explicitRut || inferredRut
+      };
     }
 
     async grantSelected() {
