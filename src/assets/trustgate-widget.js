@@ -406,8 +406,12 @@
         };
 
         if (action === 'grant') {
-          body.email = identifierFields.email;
-          body.rut = identifierFields.rut;
+          if (identifierFields.email) {
+            body.email = identifierFields.email;
+          }
+          if (identifierFields.rut) {
+            body.rut = identifierFields.rut;
+          }
           body.acceptanceAction = 'WIDGET_DEMO';
         } else {
           body.reason = 'Revocacion solicitada desde widget demo';
