@@ -356,6 +356,19 @@
       this.state.selections = {};
     }
 
+    resolveIdentifierFields(identifier) {
+      const normalized = String(identifier || '').trim();
+      if (!normalized) {
+        return { email: null, rut: null };
+      }
+
+      if (normalized.includes('@')) {
+        return { email: normalized, rut: null };
+      }
+
+      return { email: null, rut: normalized };
+    }
+
     async grantSelected() {
       await this.submitSelection('grant');
     }
@@ -382,6 +395,7 @@
       this.syncSelectionUi();
 
       try {
+        const identifierFields = this.resolveIdentifierFields(this.config.identifier);
         const body = {
           identifier: this.config.identifier,
           purposes: purposes,
@@ -392,6 +406,8 @@
         };
 
         if (action === 'grant') {
+          body.email = identifierFields.email;
+          body.rut = identifierFields.rut;
           body.acceptanceAction = 'WIDGET_DEMO';
         } else {
           body.reason = 'Revocacion solicitada desde widget demo';
