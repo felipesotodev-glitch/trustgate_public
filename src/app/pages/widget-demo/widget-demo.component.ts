@@ -605,6 +605,13 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
 
     this.clearLog();
     this.removeWidgetScript();
+    console.info('[TrustGate Demo] Lanzando widget', {
+      mode: this.config.mode,
+      identifier: this.config.identifier,
+      clientKeyPresent: Boolean(this.config.clientKey.trim()),
+      targetId: this.config.mode === 'inline' ? 'inline-target' : null,
+      statusEndpoint
+    });
     this.addLogEntry('info', `Lanzando widget en modo "${this.config.mode}" para "${this.config.identifier}"`);
 
     (window as unknown as Record<string, unknown>)['TrustGateConfig'] = {
@@ -616,12 +623,15 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       purposeIds: purposeIds,
       channelCodes: channelCodes,
       onGranted: (data: unknown) => {
+        console.info('[TrustGate Demo] Consentimiento otorgado', data);
         this.addLogEntry('granted', JSON.stringify(data, null, 2));
       },
       onRevoked: (data: unknown) => {
+        console.info('[TrustGate Demo] Consentimiento revocado', data);
         this.addLogEntry('revoked', JSON.stringify(data, null, 2));
       },
       onError: (err: unknown) => {
+        console.error('[TrustGate Demo] Error del widget', err);
         this.addLogEntry('error', JSON.stringify(err, null, 2));
       }
     };
@@ -630,9 +640,11 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     script.src = `/assets/trustgate-consent-widget.js?v=${WIDGET_ASSET_VERSION}`;
     script.defer = true;
     script.onload = () => {
+      console.info('[TrustGate Demo] trustgate-consent-widget.js cargado');
       this.addLogEntry('info', 'Widget cargado correctamente');
     };
     script.onerror = () => {
+      console.error('[TrustGate Demo] No se pudo cargar trustgate-consent-widget.js');
       this.addLogEntry('error', 'No se pudo cargar trustgate-consent-widget.js — asegúrate de que el archivo existe en /assets/');
     };
     document.body.appendChild(script);

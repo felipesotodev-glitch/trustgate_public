@@ -8,6 +8,18 @@
       this.loaded = false;
     }
 
+    loadWidgetScriptFresh() {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '/assets/trustgate-widget.js?v=' + Date.now();
+        script.async = true;
+        script.defer = true;
+        script.addEventListener('load', () => resolve(), { once: true });
+        script.addEventListener('error', () => reject(new Error('No fue posible recargar trustgate-widget.js.')), { once: true });
+        document.head.appendChild(script);
+      });
+    }
+
     async mount() {
       if (global.TrustGateWidget && typeof global.TrustGateWidget.destroy === 'function') {
         global.TrustGateWidget.destroy();
@@ -33,6 +45,10 @@
       await (sdk.loadScriptOnce
         ? sdk.loadScriptOnce('/assets/trustgate-widget.js')
         : Promise.resolve());
+
+      if (!global.TrustGateWidget) {
+        await this.loadWidgetScriptFresh();
+      }
 
       this.loaded = true;
       return global.TrustGateWidget || null;
