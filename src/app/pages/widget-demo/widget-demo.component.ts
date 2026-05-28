@@ -626,13 +626,13 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     };
 
     const script = document.createElement('script');
-    script.src = `/assets/trustgate-widget.js?v=${WIDGET_ASSET_VERSION}`;
+    script.src = `/assets/trustgate-consent-widget.js?v=${WIDGET_ASSET_VERSION}`;
     script.defer = true;
     script.onload = () => {
       this.addLogEntry('info', 'Widget cargado correctamente');
     };
     script.onerror = () => {
-      this.addLogEntry('error', 'No se pudo cargar trustgate-widget.js — asegúrate de que el archivo existe en /assets/');
+      this.addLogEntry('error', 'No se pudo cargar trustgate-consent-widget.js — asegúrate de que el archivo existe en /assets/');
     };
     document.body.appendChild(script);
     this.scriptElement = script;
@@ -674,7 +674,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       ? '<div id="trustgate-inline-target"></div>\n\n'
       : '';
 
-    return `${inlineTargetMarkup}<script>\nwindow.TrustGateConfig = {\n${configLines.join('\n')}\n};\n</script>\n<script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget.js" defer></script>`;
+    return `${inlineTargetMarkup}<script>\nwindow.TrustGateConsentConfig = {\n${configLines.join('\n')}\n};\n</script>\n<script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget-sdk.js" defer></script>\n<script src="https://cdn.trustgate.cl/widget/latest/trustgate-consent-widget.js" defer></script>`;
   }
 
   private escapeForSnippet(value: string): string {

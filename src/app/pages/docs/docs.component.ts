@@ -116,16 +116,16 @@ import { RouterLink } from '@angular/router';
         <section id="sdk-widget" class="docs-section" aria-labelledby="sdk-title">
           <h2 id="sdk-title">SDK Widget</h2>
           <p>
-            Embebe el widget de consentimiento en cualquier página HTML con tres líneas de código.
+            Embebe los widgets de consentimiento y derechos en cualquier página HTML con el SDK compartido.
           </p>
           <pre>{{ widgetSnippet }}</pre>
           <p>
-            El widget consulta automáticamente <code>/consent/purposes</code> y <code>/consent/status</code> al inicializarse. Para lanzar el widget, <code>identifier</code> y <code>clientKey</code> son obligatorios.
+            El widget de consentimientos consulta automáticamente <code>/consent/purposes</code> y <code>/consent/status</code> al inicializarse. Para lanzarlo, <code>identifier</code> y <code>clientKey</code> son obligatorios.
           </p>
           <p>
-            La instancia expone <code>window.TrustGateWidget.open()</code>, <code>close()</code>, <code>destroy()</code> y <code>reload()</code> para control programático.
+            El widget de derechos embebe la ruta segura de autorización y expone un contenedor autoajustable para el flujo ARCO-P.
           </p>
-          <p>Opciones de configuración disponibles en <code>window.TrustGateConfig</code>:</p>
+          <p>Opciones de configuración disponibles para el widget de consentimientos en <code>window.TrustGateConsentConfig</code>:</p>
           <div class="table-wrapper">
             <table>
               <thead>
@@ -146,7 +146,10 @@ import { RouterLink } from '@angular/router';
             </table>
           </div>
           <p>
-            Si tu sitio o integración no necesita exponer todo el catálogo, puedes limitar lo que se renderiza enviando <code>purposeIds</code>, <code>channelIds</code> o <code>channelCodes</code> en <code>window.TrustGateConfig</code>.
+            Para el widget de derechos, usa <code>window.TrustGateRightsConfig</code> con <code>token</code> o <code>authorizationUrl</code>, además de <code>mode</code> y <code>targetId</code> cuando necesites integrarlo en línea.
+          </p>
+          <p>
+            Si tu sitio o integración no necesita exponer todo el catálogo, puedes limitar lo que se renderiza enviando <code>purposeIds</code>, <code>channelIds</code> o <code>channelCodes</code> en <code>window.TrustGateConsentConfig</code>.
           </p>
         </section>
 
@@ -416,7 +419,7 @@ export class DocsComponent {
 
   widgetSnippet = `<div id="trustgate-consent"></div>
 <script>
-  window.TrustGateConfig = {
+  window.TrustGateConsentConfig = {
     clientKey: 'tgpub_xxxxxxxxxxxxxxxx',
     identifier: 'usuario@empresa.cl',
     mode: 'inline',
@@ -426,7 +429,21 @@ export class DocsComponent {
     onError:   (err)  => console.error('Error', err)
   };
 </script>
-<script src="/assets/trustgate-widget.js" defer></script>`;
+<script src="/assets/trustgate-widget-sdk.js" defer></script>
+<script src="/assets/trustgate-consent-widget.js" defer></script>
+
+<div id="trustgate-rights"></div>
+<script>
+  window.TrustGateRightsConfig = {
+    token: 'token-autorizacion-seguro',
+    mode: 'inline',
+    targetId: 'trustgate-rights',
+    title: 'Centro de derechos ARCO-P',
+    description: 'Solicitudes de acceso, rectificación, cancelación, oposición y portabilidad.'
+  };
+</script>
+<script src="/assets/trustgate-widget-sdk.js" defer></script>
+<script src="/assets/trustgate-rights-widget.js" defer></script>`;
 
   errors = [
     {

@@ -226,10 +226,11 @@ export class QuickstartComponent {
       number: '4',
       title: 'Integra el widget',
       badge: 'Opción A',
-      description: 'Agrega el widget a tu página y proporciona `clientKey` e `identifier`. El widget consulta automáticamente finalidades y estado actual del titular al cargarse.',
-      code: `<div id="trustgate-consent"></div>
+      description: 'Agrega el widget de consentimientos a tu página y proporciona `clientKey` e `identifier`. Para derechos ARCO-P usa el widget dedicado con token seguro.',
+      code: `<!-- Widget de consentimientos -->
+<div id="trustgate-consent"></div>
 <script>
-  window.TrustGateConfig = {
+  window.TrustGateConsentConfig = {
     clientKey: 'tgpub_xxxxxxxxxxxxxxxx', // desde tu servidor
     identifier: usuario.email,           // identificador del titular
     mode: 'modal',                       // 'banner' | 'modal' | 'inline'
@@ -240,8 +241,23 @@ export class QuickstartComponent {
     onError: (err) => console.error('Error del widget', err)
   };
 </script>
-<script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget.js" defer></script>`,
-      note: 'Pasa el clientKey desde tu backend, nunca lo hardcodees en el frontend. Si usas modo inline, agrega además `targetId` con el id del contenedor. Si tu integración no necesita todo el catálogo, usa `purposeIds` y/o `channelCodes` para limitar lo que el widget muestra.'
+<script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget-sdk.js" defer></script>
+<script src="https://cdn.trustgate.cl/widget/latest/trustgate-consent-widget.js" defer></script>
+
+<!-- Widget de derechos ARCO-P -->
+<div id="trustgate-rights"></div>
+<script>
+  window.TrustGateRightsConfig = {
+    token: 'token-autorizacion-seguro',   // enlace seguro emitido por TrustGate
+    mode: 'inline',                       // 'modal' | 'inline'
+    targetId: 'trustgate-rights',
+    title: 'Centro de derechos ARCO-P',
+    description: 'Gestiona solicitudes y seguimiento desde tu portal.'
+  };
+</script>
+<script src="https://cdn.trustgate.cl/widget/latest/trustgate-widget-sdk.js" defer></script>
+<script src="https://cdn.trustgate.cl/widget/latest/trustgate-rights-widget.js" defer></script>`,
+      note: 'Pasa el clientKey desde tu backend, nunca lo hardcodees en el frontend. Para consentimientos usa `TrustGateConsentConfig`; para derechos usa `TrustGateRightsConfig` con un token seguro. Si usas modo inline, agrega `targetId` con el id del contenedor.'
     },
     {
       number: '5',
