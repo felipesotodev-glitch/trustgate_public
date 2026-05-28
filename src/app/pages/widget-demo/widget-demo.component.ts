@@ -30,7 +30,7 @@ interface WidgetEventLogEntry {
 }
 
 const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
-const WIDGET_ASSET_VERSION = '2026-05-27-02';
+const WIDGET_ASSET_VERSION = '2026-05-27-03';
 
 @Component({
   selector: 'tp-widget-demo',
@@ -622,6 +622,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       statusEndpoint,
       purposeIds: purposeIds,
       channelCodes: channelCodes,
+      widgetType: 'consent',
       autoMount: false,
       onGranted: (data: unknown) => {
         console.info('[TrustGate Demo] Consentimiento otorgado', data);

@@ -651,8 +651,9 @@
         + '<footer class="tg-footer-shell">'
         + '<div class="tg-actions">'
         + '<button class="tg-btn tg-btn--ghost" type="button" data-action="refresh" ' + (busy ? 'disabled' : '') + '>Actualizar</button>'
-        + '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'revoke' ? 'Revocando...' : 'Revocar seleccionados') + '</button>'
-        + '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>'
+        // widgetType: 'consent' → solo Otorgar | 'rights' → solo Revocar | undefined → ambos
+        + (this.config.widgetType !== 'consent' ? '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'revoke' ? 'Revocando...' : 'Revocar seleccionados') + '</button>' : '')
+        + (this.config.widgetType !== 'rights' ? '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>' : '')
         + '</div>'
         + '</footer>'
         + '</section>'
