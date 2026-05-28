@@ -194,14 +194,20 @@ const server = createServer(async (req, res) => {
     }
 
     if (pathname === '/api/widget-demo/consent-status' && req.method === 'GET') {
-      const upstream = await fetchUpstreamJson(req, '/api/v1/public/consent/status', search);
-      if (upstream.status === 404) {
+      try {
+        const upstream = await fetchUpstreamJson(req, '/api/v1/public/consent/status', search);
+        // 404 = titular sin registros; cualquier 4xx/5xx = degradar a sin registros para la demo
+        if (upstream.status === 200 || upstream.status === 201) {
+          sendJson(res, upstream.status, upstream.body);
+        } else {
+          const identifier = url.searchParams.get('identifier') ?? '';
+          sendJson(res, 200, { identifier, consents: [] });
+        }
+      } catch {
+        // Backend inalcanzable: responder vacío para que la demo quede funcional
         const identifier = url.searchParams.get('identifier') ?? '';
         sendJson(res, 200, { identifier, consents: [] });
-        return;
       }
-
-      sendJson(res, upstream.status, upstream.body);
       return;
     }
 

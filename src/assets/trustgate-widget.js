@@ -136,7 +136,7 @@
         return data;
       }
 
-      if (options && options.allowNotFound && response.status === 404) {
+      if (options && options.allowNotFound && (response.status === 404 || response.status >= 500)) {
         return { notFound: true, detail: this.extractMessage(data) };
       }
 
