@@ -22,6 +22,14 @@ export const routes: Routes = [
     title: 'Demo Widget — TrustGate'
   },
   {
+    path: 'rights-widget-demo',
+    loadComponent: () =>
+      import('./pages/rights-widget-demo/rights-widget-demo.component').then(
+        (m) => m.RightsWidgetDemoComponent
+      ),
+    title: 'Demo Derechos ARCO-P — TrustGate'
+  },
+  {
     path: 'widget-simple',
     loadComponent: () =>
       import('./pages/simple-widget-demo/simple-widget-demo.component').then(

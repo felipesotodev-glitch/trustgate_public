@@ -184,6 +184,8 @@ import { RouterLink } from '@angular/router';
 
         <div class="docs-footer-nav">
           <a routerLink="/quickstart" class="btn btn-primary">Continuar → Quickstart</a>
+          <a routerLink="/widget-demo" class="btn btn-outline">Ver demo de consentimiento</a>
+          <a routerLink="/rights-widget-demo" class="btn btn-outline">Ver demo de derechos</a>
         </div>
 
       </main>

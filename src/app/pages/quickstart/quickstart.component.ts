@@ -60,6 +60,9 @@ import { RouterLink } from '@angular/router';
               <a routerLink="/widget-demo">🧪 Prueba el widget en la demo interactiva</a>
             </li>
             <li>
+              <a routerLink="/rights-widget-demo">🧾 Prueba el widget de derechos ARCO-P</a>
+            </li>
+            <li>
               <a routerLink="/api-demo">⚡ Explora todos los endpoints en la Demo API</a>
             </li>
             <li>
