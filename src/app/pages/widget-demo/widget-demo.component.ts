@@ -603,6 +603,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.clearLog();
     this.removeWidgetScript();
     this.addLogEntry('info', `Lanzando widget en modo "${this.config.mode}" para "${this.config.identifier}"`);
 
