@@ -9,6 +9,9 @@
         identifier: typeof widgetConfig.identifier === 'string' ? widgetConfig.identifier.trim() : '',
         email: typeof widgetConfig.email === 'string' ? widgetConfig.email.trim() : '',
         rut: typeof widgetConfig.rut === 'string' ? widgetConfig.rut.trim() : '',
+        widgetType: widgetConfig.widgetType === 'rights' || widgetConfig.widgetType === 'consent'
+          ? widgetConfig.widgetType
+          : undefined,
         mode: allowedModes.has(widgetConfig.mode) ? widgetConfig.mode : 'banner',
         targetId: widgetConfig.targetId,
         statusEndpoint: typeof widgetConfig.statusEndpoint === 'string' ? widgetConfig.statusEndpoint.trim() : '',
@@ -111,6 +114,7 @@
         const [purposes, status] = await Promise.all([purposesPromise, statusPromise]);
         this.state.purposes = this.filterPurposes(purposes);
         this.state.consents = status ? this.filterConsents(status.consents) : [];
+        this.syncSelectionsFromConsents();
         if (skipInitialStatusCheck) {
           this.state.hasSkippedInitialStatusCheck = true;
           this.state.info = 'Comenzamos sin datos previos. Selecciona canales y guarda tus permisos.';
@@ -222,7 +226,20 @@
       const filterByPurpose = purposeIds.size > 0;
       const filterByChannel = channelIds.size > 0 || channelCodes.size > 0;
 
-      return (Array.isArray(consents) ? consents : []).filter((item) => {
+      return (Array.isArray(consents) ? consents : []).map((item) => ({
+        purposeId: Number(item.purposeId != null ? item.purposeId : item.idFinalidad),
+        channelId: Number(item.channelId != null ? item.channelId : item.idCanal),
+        channel: String(
+          item.channel != null
+            ? item.channel
+            : (item.channelCode != null ? item.channelCode : (item.codigoCanal != null ? item.codigoCanal : ''))
+        ).trim().toLowerCase(),
+        status: String(item.status != null ? item.status : (item.estado != null ? item.estado : 'sin_registro')).trim().toLowerCase() || 'sin_registro'
+      })).filter((item) => {
+        if (!Number.isInteger(item.purposeId) || item.purposeId <= 0) {
+          return false;
+        }
+
         if (filterByPurpose && !purposeIds.has(item.purposeId)) {
           return false;
         }
@@ -231,13 +248,31 @@
           return true;
         }
 
-        return channelIds.has(item.channelId) || channelCodes.has(String(item.channel || '').trim().toLowerCase());
+        return channelIds.has(item.channelId) || channelCodes.has(item.channel);
       });
     }
 
+    syncSelectionsFromConsents() {
+      const nextSelections = {};
+
+      this.state.purposes.forEach((purpose) => {
+        (purpose.canales || []).forEach((channel) => {
+          const status = this.getConsentStatus(purpose.id, channel.codigo);
+          if (this.isActiveStatus(status)) {
+            const key = this.selectionKey(purpose.id, channel.id);
+            nextSelections[key] = true;
+          }
+        });
+      });
+
+      this.state.selections = nextSelections;
+    }
+
     getConsentStatus(purposeId, channelCode) {
+      const normalizedPurposeId = Number(purposeId);
+      const normalizedChannelCode = String(channelCode || '').trim().toLowerCase();
       const match = this.state.consents.find(
-        (item) => item.purposeId === purposeId && item.channel === channelCode
+        (item) => Number(item.purposeId) === normalizedPurposeId && String(item.channel || '').trim().toLowerCase() === normalizedChannelCode
       );
       return match ? match.status : 'sin_registro';
     }
