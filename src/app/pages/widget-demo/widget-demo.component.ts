@@ -726,8 +726,9 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     this.eventLog.set([]);
   }
 
+  // US-6202 funcional: el flujo de carga del estado del widget usa endpoint público directo para evitar fallback vacío del proxy demo en producción.
   private resolveStatusEndpoint(): string {
-    return isDevMode() ? '/api/v1/public/consent/status' : '/api/widget-demo/consent-status';
+    return '/api/v1/public/consent/status';
   }
 
   private removeWidgetScript(): void {
