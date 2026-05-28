@@ -30,7 +30,7 @@ interface WidgetEventLogEntry {
 }
 
 const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
-const WIDGET_ASSET_VERSION = '2026-05-27-03';
+const WIDGET_ASSET_VERSION = '2026-05-27-04';
 
 @Component({
   selector: 'tp-widget-demo',

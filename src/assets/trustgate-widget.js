@@ -113,9 +113,9 @@
         this.state.consents = status ? this.filterConsents(status.consents) : [];
         if (skipInitialStatusCheck) {
           this.state.hasSkippedInitialStatusCheck = true;
-          this.state.info = 'Estado inicial omitido para la demo; puedes otorgar consentimiento y luego actualizar.';
+          this.state.info = 'Comenzamos sin datos previos. Selecciona canales y guarda tus permisos.';
         } else if (status && status.notFound) {
-          this.state.info = 'El titular aun no registra consentimientos; puedes otorgarlos desde este widget.';
+          this.state.info = 'Aun no hay consentimientos registrados para este identificador.';
         }
       } finally {
         this.state.loading = false;
@@ -319,15 +319,15 @@
         revokeButton.disabled = busy;
         revokeButton.textContent = this.state.busyAction === 'revoke'
           ? 'Revocando...'
-          : 'Revocar seleccionados';
+          : 'Revocar consentimiento';
       }
 
       const grantButton = this.shadow.querySelector('[data-action="grant"]');
       if (grantButton) {
         grantButton.disabled = busy;
         grantButton.textContent = this.state.busyAction === 'grant'
-          ? 'Otorgando...'
-          : 'Otorgar seleccionados';
+          ? 'Guardando...'
+          : 'Guardar consentimiento';
       }
     }
 
@@ -439,18 +439,18 @@
         if (action === 'revoke') {
           this.clearSelections();
           await this.loadData();
-          this.state.info = 'Consentimiento revocado correctamente.';
+          this.state.info = 'Listo. El consentimiento fue revocado.';
           if (typeof this.config.onRevoked === 'function') {
             this.config.onRevoked(response);
           }
         } else if (action === 'grant' && response.status === 'pending_authorization') {
-          this.state.info = `Enlace de autorizaciÃ³n enviado a ${response.maskedEmail}. Revisa tu correo y confirma el consentimiento para que quede registrado.`;
+          this.state.info = `Te enviamos un enlace de autorizacion a ${response.maskedEmail}. Revisa tu correo para confirmar.`;
           if (typeof this.config.onGranted === 'function') {
             this.config.onGranted(response);
           }
         } else {
           await this.loadData();
-          this.state.info = 'Consentimiento otorgado correctamente.';
+          this.state.info = 'Listo. El consentimiento fue guardado correctamente.';
           if (action === 'grant' && typeof this.config.onGranted === 'function') {
             this.config.onGranted(response);
           }
@@ -573,6 +573,9 @@
       const busy = this.state.busyAction !== '' || this.state.loading;
       const selectedCount = this.getSelectedCount();
       const showInitialLoading = this.state.loading && this.state.purposes.length === 0;
+      const helperText = this.config.widgetType === 'rights'
+        ? 'Selecciona los permisos que deseas revocar y confirma la accion.'
+        : 'Selecciona los canales que quieres autorizar y presiona Guardar consentimiento.';
 
       const purposesMarkup = this.state.purposes.length === 0 && !showInitialLoading
         ? '<div class="tg-empty">No hay finalidades activas disponibles para este cliente.</div>'
@@ -598,7 +601,7 @@
               + '<header class="tg-purpose-header">'
               + '<div>'
               + '<h3>' + this.escapeHtml(purpose.nombre) + '</h3>'
-              + '<p>' + this.escapeHtml(purpose.descripcion || 'Gestiona el consentimiento por canal.') + '</p>'
+              + '<p>' + this.escapeHtml(purpose.descripcion || 'Elige como quieres ser contactado.') + '</p>'
               + '</div>'
               + '<span class="tg-legal">' + this.escapeHtml(purpose.baseLegal || 'Consentimiento') + '</span>'
               + '</header>'
@@ -627,8 +630,8 @@
         + '<div class="tg-topbar">'
         + '<div>'
         + '<span class="tg-badge">TrustGate</span>'
-        + '<h2>Centro de consentimiento</h2>'
-        + '<p>Gestiona tus permisos por finalidad y canal.</p>'
+        + '<h2>Tus consentimientos</h2>'
+        + '<p>Administra tus permisos de forma simple y clara.</p>'
         + '</div>'
         + (this.config.mode === 'inline' ? '' : '<button class="tg-close" type="button" data-action="close" aria-label="Cerrar">Cerrar</button>')
         + '</div>'
@@ -640,6 +643,7 @@
         + '<div class="tg-body" data-scroll-region="true">'
         + (this.state.error ? '<div class="tg-alert tg-alert--error" data-role="widget-error">' + this.escapeHtml(this.state.error) + '</div>' : '')
         + (this.state.info ? '<div class="tg-alert tg-alert--info" data-role="widget-info">' + this.escapeHtml(this.state.info) + '</div>' : '')
+        + '<div class="tg-help">' + this.escapeHtml(helperText) + '</div>'
         + (showInitialLoading ? '<div class="tg-loading">' + this.escapeHtml(this.state.loadingMessage) + '</div>' : purposesMarkup)
         + '<div class="tg-loading-overlay ' + (this.state.loading && this.state.purposes.length > 0 ? '' : 'tg-hidden') + '" data-role="widget-loading">'
         + '<div class="tg-loading-overlay__card">'
@@ -652,8 +656,8 @@
         + '<div class="tg-actions">'
         + '<button class="tg-btn tg-btn--ghost" type="button" data-action="refresh" ' + (busy ? 'disabled' : '') + '>Actualizar</button>'
         // widgetType: 'consent' → solo Otorgar | 'rights' → solo Revocar | undefined → ambos
-        + (this.config.widgetType !== 'consent' ? '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'revoke' ? 'Revocando...' : 'Revocar seleccionados') + '</button>' : '')
-        + (this.config.widgetType !== 'rights' ? '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Otorgando...' : 'Otorgar seleccionados') + '</button>' : '')
+        + (this.config.widgetType !== 'consent' ? '<button class="tg-btn tg-btn--danger" type="button" data-action="revoke" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'revoke' ? 'Revocando...' : 'Revocar consentimiento') + '</button>' : '')
+        + (this.config.widgetType !== 'rights' ? '<button class="tg-btn tg-btn--primary" type="button" data-action="grant" ' + (busy ? 'disabled' : '') + '>' + (this.state.busyAction === 'grant' ? 'Guardando...' : 'Guardar consentimiento') + '</button>' : '')
         + '</div>'
         + '</footer>'
         + '</section>'
@@ -724,6 +728,8 @@
         + '.tg-alert--error { background: hsl(356 100% 97%); color: hsl(343 80% 35%); border: 1px solid hsl(353 96% 90%); }'
         + '.tg-alert--info { background: hsl(214 100% 97%); color: hsl(224 76% 48%); border: 1px solid hsl(213 97% 87%); }'
         + '.tg-card--banner .tg-alert, .tg-card--inline .tg-alert { margin: 0 18px 12px; font-size: 13px; }'
+        + '.tg-help { margin: 0 24px 16px; padding: 10px 12px; border-radius: 12px; background: hsl(210 40% 96%); color: hsl(214 52% 25%); font-size: 13px; border: 1px solid hsl(214 36% 88%); }'
+        + '.tg-card--banner .tg-help, .tg-card--inline .tg-help { margin: 0 18px 12px; }'
         + '.tg-loading, .tg-empty { margin: 0 24px 24px; padding: 18px; border-radius: 16px; background: hsl(214 100% 97%); color: hsl(214 52% 25%); font-size: 14px; }'
         + '.tg-loading-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: hsl(216 100% 98%); backdrop-filter: blur(2px); }'
         + '.tg-loading-overlay__card { display: inline-flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 16px; background: hsl(0 0% 100%); border: 1px solid hsl(215 71% 91%); box-shadow: 0 16px 40px hsl(214 59% 15%); color: hsl(214 52% 25%); font-size: 14px; font-weight: 600; }'
