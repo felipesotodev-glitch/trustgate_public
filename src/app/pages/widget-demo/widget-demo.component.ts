@@ -30,7 +30,7 @@ interface WidgetEventLogEntry {
 }
 
 const DEFAULT_DEMO_IDENTIFIER = 'demo@trustgate.cl';
-const WIDGET_ASSET_VERSION = '2026-04-20-02';
+const WIDGET_ASSET_VERSION = '2026-05-27-01';
 
 @Component({
   selector: 'tp-widget-demo',
@@ -614,7 +614,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     });
     this.addLogEntry('info', `Lanzando widget en modo "${this.config.mode}" para "${this.config.identifier}"`);
 
-    (window as unknown as Record<string, unknown>)['TrustGateConfig'] = {
+    (window as unknown as Record<string, unknown>)['TrustGateConsentConfig'] = {
       clientKey: this.config.clientKey,
       identifier: this.config.identifier,
       mode: this.config.mode,
@@ -622,6 +622,7 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
       statusEndpoint,
       purposeIds: purposeIds,
       channelCodes: channelCodes,
+      autoMount: false,
       onGranted: (data: unknown) => {
         console.info('[TrustGate Demo] Consentimiento otorgado', data);
         this.addLogEntry('granted', JSON.stringify(data, null, 2));
@@ -642,6 +643,21 @@ export class WidgetDemoComponent implements OnInit, OnDestroy {
     script.onload = () => {
       console.info('[TrustGate Demo] trustgate-consent-widget.js cargado');
       this.addLogEntry('info', 'Widget cargado correctamente');
+
+      const widgetApi = (window as unknown as Record<string, unknown>)['TrustGateConsentWidget'] as {
+        mount?: (config: unknown) => Promise<unknown>;
+      } | undefined;
+
+      if (!widgetApi || typeof widgetApi.mount !== 'function') {
+        console.error('[TrustGate Demo] TrustGateConsentWidget no quedó disponible tras cargar el asset');
+        this.addLogEntry('error', 'TrustGateConsentWidget no quedó disponible tras cargar el asset');
+        return;
+      }
+
+      void widgetApi.mount((window as unknown as Record<string, unknown>)['TrustGateConsentConfig']).catch((error: unknown) => {
+        console.error('[TrustGate Demo] Error montando el widget', error);
+        this.addLogEntry('error', error instanceof Error ? error.message : 'Error montando el widget');
+      });
     };
     script.onerror = () => {
       console.error('[TrustGate Demo] No se pudo cargar trustgate-consent-widget.js');

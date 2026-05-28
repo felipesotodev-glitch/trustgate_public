@@ -99,7 +99,7 @@
   };
 
   const bootstrapConfig = global.TrustGateConsentConfig || global.TrustGateConfig;
-  if (bootstrapConfig) {
+  if (bootstrapConfig && bootstrapConfig.autoMount !== false) {
     void global.TrustGateConsentWidget.mount(bootstrapConfig);
   }
 })(window);
